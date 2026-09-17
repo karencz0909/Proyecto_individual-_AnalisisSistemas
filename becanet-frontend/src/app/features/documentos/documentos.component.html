@@ -1,0 +1,52 @@
+<div class="container">
+  <div class="card">
+    <h2>Cargar documentación (US-008)</h2>
+
+    <div class="alert alert-error" *ngIf="mensajeError">{{ mensajeError }}</div>
+    <div class="alert alert-success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+
+    <div class="form-group">
+      <label>ID de la solicitud</label>
+      <input type="number" [(ngModel)]="idSolicitud" name="idSolicitud" min="1" />
+    </div>
+
+    <div class="form-group">
+      <label>Archivo (PDF, JPG o PNG — máximo 5 MB)</label>
+      <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onArchivoSeleccionado($event)" />
+    </div>
+
+    <button class="btn btn-primary" (click)="cargarDocumento()" [disabled]="cargando">
+      {{ cargando ? 'Subiendo...' : 'Subir documento' }}
+    </button>
+    <button class="btn btn-secondary" (click)="consultarDocumentos()" [disabled]="cargando" style="margin-left: 8px;">
+      Ver documentos de esta solicitud
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>Documentos cargados</h2>
+
+    <table *ngIf="documentos.length > 0">
+      <thead>
+        <tr>
+          <th>Archivo</th>
+          <th>Tipo</th>
+          <th>Fecha de carga</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of documentos">
+          <td>{{ d.nombreArchivo }}</td>
+          <td>{{ d.tipoArchivo }}</td>
+          <td>{{ d.fechaCarga | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td><a [href]="d.urlArchivo" target="_blank">Ver archivo</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="empty-state" *ngIf="documentos.length === 0">
+      Aún no hay documentos cargados para esta solicitud.
+    </p>
+  </div>
+</div>

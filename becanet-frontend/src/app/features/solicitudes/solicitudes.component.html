@@ -1,0 +1,77 @@
+<div class="container">
+  <div class="card">
+    <h2>Postular a una convocatoria (US-007)</h2>
+
+    <div class="alert alert-error" *ngIf="mensajeError">{{ mensajeError }}</div>
+    <div class="alert alert-success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ID del estudiante</label>
+        <input type="number" [(ngModel)]="nuevaSolicitud.idEstudiante" name="idEstudiante" min="1" />
+      </div>
+      <div class="form-group">
+        <label>ID de la convocatoria</label>
+        <input type="number" [(ngModel)]="nuevaSolicitud.idConvocatoria" name="idConvocatoria" min="1" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Observaciones (opcional)</label>
+      <textarea [(ngModel)]="nuevaSolicitud.observaciones" name="observaciones" rows="2"></textarea>
+    </div>
+
+    <button class="btn btn-primary" (click)="crearSolicitud()" [disabled]="cargando">
+      {{ cargando ? 'Enviando...' : 'Crear solicitud' }}
+    </button>
+    <p class="hint">Solo se puede postular a convocatorias en estado ABIERTA y una vez por convocatoria.</p>
+  </div>
+
+  <div class="card">
+    <h2>Mis solicitudes</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ID del estudiante a consultar</label>
+        <input type="number" [(ngModel)]="idEstudianteConsulta" name="idEstudianteConsulta" min="1" />
+      </div>
+    </div>
+    <button class="btn btn-secondary" (click)="buscarPorEstudiante()" [disabled]="cargando">
+      Consultar solicitudes
+    </button>
+
+    <table *ngIf="solicitudes.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Convocatoria</th>
+          <th>Estado</th>
+          <th>Documentos</th>
+          <th>Fecha</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of solicitudes">
+          <td>{{ s.id }}</td>
+          <td>{{ s.tituloConvocatoria || ('Convocatoria #' + s.idConvocatoria) }}</td>
+          <td><span [class]="claseBadge(s.estado)">{{ s.estado }}</span></td>
+          <td>{{ s.cantidadDocumentos }}</td>
+          <td>{{ s.fechaCreacion | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <button
+              class="btn btn-danger"
+              *ngIf="s.estado === 'EN_PROCESO'"
+              (click)="cancelarSolicitud(s)">
+              Cancelar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="empty-state" *ngIf="solicitudes.length === 0">
+      No hay solicitudes para mostrar todavía. Consulta un estudiante o crea una nueva solicitud.
+    </p>
+  </div>
+</div>

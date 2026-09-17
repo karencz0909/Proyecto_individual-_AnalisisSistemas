@@ -1,0 +1,68 @@
+<div class="container">
+  <div class="card">
+    <h2>Crear comité evaluador (US-010)</h2>
+
+    <div class="alert alert-error" *ngIf="mensajeError">{{ mensajeError }}</div>
+    <div class="alert alert-success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+
+    <div class="form-group">
+      <label>Nombre del comité</label>
+      <input type="text" [(ngModel)]="nombreComite" name="nombreComite" placeholder="Ej: Comité Becas Universitarias 2026" />
+    </div>
+
+    <div class="form-group">
+      <label>IDs de los evaluadores (separados por coma, mínimo 2)</label>
+      <input type="text" [(ngModel)]="idsEvaluadoresTexto" name="idsEvaluadores" placeholder="Ej: 3, 5, 8" />
+      <span class="hint">Un comité necesita al menos 2 miembros para poder crearse.</span>
+    </div>
+
+    <button class="btn btn-primary" (click)="crearComite()" [disabled]="cargando">
+      {{ cargando ? 'Creando...' : 'Crear comité' }}
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>Asignar solicitudes a un comité (US-011)</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ID del comité</label>
+        <input type="number" [(ngModel)]="idComiteAsignar" name="idComiteAsignar" min="1" />
+      </div>
+      <div class="form-group">
+        <label>IDs de solicitudes (separados por coma)</label>
+        <input type="text" [(ngModel)]="idsSolicitudesTexto" name="idsSolicitudes" placeholder="Ej: 12, 13, 14" />
+      </div>
+    </div>
+
+    <button class="btn btn-primary" (click)="asignarSolicitudes()" [disabled]="cargando">
+      Asignar solicitudes
+    </button>
+    <p class="hint">Solo se pueden asignar solicitudes en estado EN_PROCESO y con documentación cargada.</p>
+  </div>
+
+  <div class="card">
+    <h2>Comités existentes</h2>
+
+    <table *ngIf="comites.length > 0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Miembros</th>
+          <th>Solicitudes asignadas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of comites">
+          <td>{{ c.id }}</td>
+          <td>{{ c.nombre }}</td>
+          <td>{{ c.miembros.join(', ') }}</td>
+          <td>{{ c.solicitudesAsignadas }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="empty-state" *ngIf="comites.length === 0">Todavía no se ha creado ningún comité.</p>
+  </div>
+</div>

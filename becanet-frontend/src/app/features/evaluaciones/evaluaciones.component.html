@@ -1,0 +1,74 @@
+<div class="container">
+  <div class="card">
+    <h2>Registrar evaluación (US-012)</h2>
+
+    <div class="alert alert-error" *ngIf="mensajeError">{{ mensajeError }}</div>
+    <div class="alert alert-success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ID de la solicitud</label>
+        <input type="number" [(ngModel)]="nuevaEvaluacion.idSolicitud" name="idSolicitud" min="1" />
+      </div>
+      <div class="form-group">
+        <label>ID del evaluador (tú)</label>
+        <input type="number" [(ngModel)]="nuevaEvaluacion.idEvaluador" name="idEvaluador" min="1" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Puntaje (0 a 100)</label>
+      <input type="number" [(ngModel)]="nuevaEvaluacion.puntaje" name="puntaje" min="0" max="100" />
+    </div>
+
+    <div class="form-group">
+      <label>Observaciones (obligatorio)</label>
+      <textarea [(ngModel)]="nuevaEvaluacion.observaciones" name="observaciones" rows="3"
+        placeholder="Justifica tu puntaje..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" (click)="registrarEvaluacion()" [disabled]="cargando">
+      {{ cargando ? 'Guardando...' : 'Registrar evaluación' }}
+    </button>
+    <p class="hint">
+      Solo puedes evaluar solicitudes asignadas al comité al que perteneces, y una sola vez por solicitud.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Evaluaciones de una solicitud</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ID de la solicitud a consultar</label>
+        <input type="number" [(ngModel)]="idSolicitudConsulta" name="idSolicitudConsulta" min="1" />
+      </div>
+    </div>
+    <button class="btn btn-secondary" (click)="consultarEvaluaciones()" [disabled]="cargando">
+      Ver evaluaciones
+    </button>
+
+    <table *ngIf="evaluaciones.length > 0">
+      <thead>
+        <tr>
+          <th>Evaluador</th>
+          <th>Puntaje</th>
+          <th>Observaciones</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of evaluaciones">
+          <td>{{ e.nombreEvaluador || ('Evaluador #' + e.idEvaluador) }}</td>
+          <td>{{ e.puntaje }}</td>
+          <td>{{ e.observaciones }}</td>
+          <td>{{ e.fechaEvaluacion | date: 'dd/MM/yyyy' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="empty-state" *ngIf="evaluaciones.length === 0">
+      Aún no hay evaluaciones registradas para esta solicitud.
+    </p>
+  </div>
+</div>

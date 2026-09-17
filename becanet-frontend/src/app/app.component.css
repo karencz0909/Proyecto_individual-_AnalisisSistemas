@@ -1,0 +1,37 @@
+.navbar {
+  background-color: #1a3c6e;
+  color: #ffffff;
+}
+
+.navbar-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.navbar-inner a {
+  color: #d7e3f7;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 4px;
+  border-bottom: 2px solid transparent;
+}
+
+.navbar-inner a:hover {
+  color: #ffffff;
+}
+
+.navbar-inner a.active {
+  color: #ffffff;
+  border-bottom: 2px solid #ffffff;
+}
