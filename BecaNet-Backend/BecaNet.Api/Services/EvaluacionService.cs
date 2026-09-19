@@ -1,6 +1,7 @@
 using BecaNet.Api.Data;
 using BecaNet.Api.DTOs;
 using BecaNet.Api.Models;
+using BecaNet.Api.Observers;
 using BecaNet.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,17 +24,20 @@ public class EvaluacionService : IEvaluacionService
     private readonly IComiteRepository _comiteRepo;
     private readonly ISolicitudRepository _solicitudRepo;
     private readonly BecaNetDbContext _context;
+    private readonly SolicitudNotificador _notificador;
 
     public EvaluacionService(
         IEvaluacionRepository evaluacionRepo,
         IComiteRepository comiteRepo,
         ISolicitudRepository solicitudRepo,
-        BecaNetDbContext context)
+        BecaNetDbContext context,
+        SolicitudNotificador notificador)
     {
         _evaluacionRepo = evaluacionRepo;
         _comiteRepo = comiteRepo;
         _solicitudRepo = solicitudRepo;
         _context = context;
+        _notificador = notificador;
     }
 
     public async Task<EvaluacionDTO> RegistrarEvaluacionAsync(RegistrarEvaluacionDTO dto)
@@ -112,8 +116,11 @@ public class EvaluacionService : IEvaluacionService
             var solicitud = await _context.Solicitudes.FindAsync(idSolicitud);
             if (solicitud is not null && solicitud.Estado == EstadoSolicitud.EnProceso)
             {
+                var estadoAnterior = solicitud.Estado;
                 solicitud.Estado = EstadoSolicitud.Evaluada;
                 await _context.SaveChangesAsync();
+
+                _notificador.NotificarCambioEstado(solicitud, estadoAnterior);
             }
         }
     }

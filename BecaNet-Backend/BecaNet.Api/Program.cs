@@ -1,4 +1,5 @@
 using BecaNet.Api.Data;
+using BecaNet.Api.Observers;
 using BecaNet.Api.Repositories;
 using BecaNet.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,11 @@ builder.Services.AddScoped<ISolicitudService, SolicitudService>();
 builder.Services.AddScoped<IDocumentoService, DocumentoService>();
 builder.Services.AddScoped<IComiteService, ComiteService>();
 builder.Services.AddScoped<IEvaluacionService, EvaluacionService>();
+
+// ---- Patrón Observer: notificaciones de cambio de estado de Solicitud ----
+builder.Services.AddSingleton<SolicitudNotificador>();
+builder.Services.AddSingleton<ISolicitudObserver, NotificacionEstudianteObserver>();
+builder.Services.AddSingleton<ISolicitudObserver, RegistroAuditoriaObserver>();
 
 // ---- API + Swagger ----
 builder.Services.AddControllers();
@@ -46,6 +52,13 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Suscribimos todos los observadores registrados al notificador
+var notificador = app.Services.GetRequiredService<SolicitudNotificador>();
+foreach (var observador in app.Services.GetServices<ISolicitudObserver>())
+{
+    notificador.Suscribir(observador);
+}
 
 if (app.Environment.IsDevelopment())
 {

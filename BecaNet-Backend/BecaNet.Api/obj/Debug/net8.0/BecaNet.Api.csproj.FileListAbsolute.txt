@@ -136,3 +136,4 @@ C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\obj
 C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\obj\Debug\net8.0\BecaNet.Api.pdb
 C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\obj\Debug\net8.0\BecaNet.Api.genruntimeconfig.cache
 C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\obj\Debug\net8.0\ref\BecaNet.Api.dll
+C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\obj\Debug\net8.0\BecaNet.Api.sourcelink.json
