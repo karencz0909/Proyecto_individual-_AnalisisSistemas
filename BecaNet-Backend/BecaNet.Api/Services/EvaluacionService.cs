@@ -13,11 +13,6 @@ public interface IEvaluacionService
     Task<List<EvaluacionDTO>> ObtenerPorSolicitudAsync(int idSolicitud);
 }
 
-/// <summary>
-/// Reglas de negocio del Módulo de registro de evaluaciones (US-012).
-/// La evaluación queda vinculada al comité asignado a la solicitud: solo un
-/// evaluador que pertenezca a ese comité puede registrar su evaluación.
-/// </summary>
 public class EvaluacionService : IEvaluacionService
 {
     private readonly IEvaluacionRepository _evaluacionRepo;
@@ -45,16 +40,13 @@ public class EvaluacionService : IEvaluacionService
         var solicitud = await _solicitudRepo.ObtenerPorIdAsync(dto.IdSolicitud)
             ?? throw new InvalidOperationException("La solicitud no existe.");
 
-        // Regla: la solicitud debe tener un comité asignado (Módulo de comités, US-011)
         if (solicitud.IdComite is null)
             throw new InvalidOperationException("La solicitud todavía no tiene un comité evaluador asignado.");
 
-        // Regla: solo un miembro del comité asignado puede evaluar esta solicitud
         var esMiembro = await _comiteRepo.EsMiembroAsync(solicitud.IdComite.Value, dto.IdEvaluador);
         if (!esMiembro)
             throw new InvalidOperationException("El evaluador no pertenece al comité asignado a esta solicitud.");
 
-        // Criterio de aceptación: un evaluador solo evalúa una vez la misma solicitud
         var yaEvaluo = await _evaluacionRepo.YaEvaluoAsync(dto.IdSolicitud, dto.IdEvaluador);
         if (yaEvaluo)
             throw new InvalidOperationException("Este evaluador ya registró una evaluación para esta solicitud.");
@@ -70,8 +62,8 @@ public class EvaluacionService : IEvaluacionService
 
         var creada = await _evaluacionRepo.CrearAsync(evaluacion);
 
-        // Criterio de aceptación: cuando todos los miembros del comité evaluaron,
-        // el estado de la solicitud cambia a "Evaluada".
+        // Cuando todos los miembros del comité evaluaron, la solicitud pasa a "Evaluada"
+        // y el patrón Observer notifica automáticamente (estudiante + auditoría).
         await ActualizarEstadoSiCorrespondeAsync(solicitud.Id, solicitud.IdComite.Value);
 
         var evaluador = await _context.Evaluadores.FindAsync(dto.IdEvaluador);

@@ -19,7 +19,7 @@ public class NotificacionEstudianteObserver : ISolicitudObserver
         // En una versión futura, aquí se integraría un servicio real de correo o
         // notificaciones push. Por ahora se deja registrado en el log del sistema.
         _logger.LogInformation(
-            "📩 Notificación al estudiante #{IdEstudiante}: su solicitud #{IdSolicitud} cambió de {Anterior} a {Nuevo}.",
+            "Notificación al estudiante #{IdEstudiante}: su solicitud #{IdSolicitud} cambió de {Anterior} a {Nuevo}.",
             solicitud.IdEstudiante, solicitud.Id, estadoAnterior, solicitud.Estado);
     }
 }

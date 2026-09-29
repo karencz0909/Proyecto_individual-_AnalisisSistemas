@@ -9,6 +9,7 @@ public interface ISolicitudRepository
     Task<Solicitud?> ObtenerPorIdAsync(int id);
     Task<List<Solicitud>> ObtenerPorEstudianteAsync(int idEstudiante);
     Task<List<Solicitud>> ObtenerPorIdsAsync(List<int> ids);
+    Task<List<Solicitud>> ObtenerTodasAsync();
     Task<bool> ExisteSolicitudActivaAsync(int idEstudiante, int idConvocatoria);
     Task<Solicitud> CrearAsync(Solicitud solicitud);
     Task ActualizarAsync(Solicitud solicitud);
@@ -47,6 +48,14 @@ public class SolicitudRepository : ISolicitudRepository
         return await _context.Solicitudes
             .Include(s => s.Documentos)
             .Where(s => ids.Contains(s.Id))
+            .ToListAsync();
+    }
+
+    public async Task<List<Solicitud>> ObtenerTodasAsync()
+    {
+        return await _context.Solicitudes
+            .Include(s => s.Estudiante)
+            .Include(s => s.Convocatoria)
             .ToListAsync();
     }
 

@@ -13,9 +13,6 @@ public interface IComiteService
     Task AsignarSolicitudesAsync(AsignarSolicitudesDTO dto);
 }
 
-/// <summary>
-/// Reglas de negocio del Módulo de gestión de comités evaluadores (US-010, US-011).
-/// </summary>
 public class ComiteService : IComiteService
 {
     private readonly IComiteRepository _comiteRepo;
@@ -31,7 +28,6 @@ public class ComiteService : IComiteService
 
     public async Task<ComiteDTO> CrearComiteAsync(CrearComiteDTO dto)
     {
-        // Criterio de aceptación: un comité debe tener al menos 2 miembros
         if (dto.IdsEvaluadores.Distinct().Count() < 2)
             throw new InvalidOperationException("Un comité debe tener al menos 2 miembros asignados.");
 
@@ -76,7 +72,6 @@ public class ComiteService : IComiteService
 
         foreach (var solicitud in solicitudes)
         {
-            // Criterio de aceptación: solo se asignan solicitudes en proceso con documentación completa
             if (solicitud.Estado != EstadoSolicitud.EnProceso)
                 throw new InvalidOperationException($"La solicitud {solicitud.Id} no está en estado EN_PROCESO.");
 

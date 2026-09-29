@@ -1,0 +1,100 @@
+<app-hero-banner></app-hero-banner>
+
+<main class="page-container">
+  <!-- Mensaje de Feedback Global -->
+  <div *ngIf="feedbackMessage" class="feedback-alert" [ngClass]="'alert-' + feedbackMessage.type">
+    <span>{{ feedbackMessage.text }}</span>
+  </div>
+
+  <!-- Tarjeta de Formulario de Postulación -->
+  <section class="flat-card">
+    <div class="card-header">
+      <h2>Postular a una convocatoria</h2>
+      <span *ngIf="isSavingDraft" class="badge-draft">Guardando borrador...</span>
+      <span *ngIf="!isSavingDraft && hasDraft" class="badge-draft saved">Borrador guardado automáticamente</span>
+    </div>
+
+    <form (submit)="$event.preventDefault(); crearSolicitud()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="idEstudiante">ID del estudiante *</label>
+          <input 
+            id="idEstudiante"
+            type="number" 
+            class="form-control" 
+            [(ngModel)]="formData.idEstudiante" 
+            name="idEstudiante"
+            (ngModelChange)="onFormChange()"
+            placeholder="Ej. 1024"
+            required />
+        </div>
+
+        <div class="form-group">
+          <label for="idConvocatoria">ID de la convocatoria *</label>
+          <input 
+            id="idConvocatoria"
+            type="number" 
+            class="form-control" 
+            [(ngModel)]="formData.idConvocatoria" 
+            name="idConvocatoria"
+            (ngModelChange)="onFormChange()"
+            placeholder="Ej. 5"
+            required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="observaciones">Observaciones (Opcional)</label>
+        <textarea 
+          id="observaciones"
+          class="form-control" 
+          rows="3" 
+          [(ngModel)]="formData.observaciones" 
+          name="observaciones"
+          (ngModelChange)="onFormChange()"
+          placeholder="Ingrese comentarios adicionales sobre su postulación..."></textarea>
+      </div>
+
+      <div class="card-actions">
+        <button type="submit" class="btn-flat btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Procesando...' : 'Crear solicitud' }}
+        </button>
+
+        <button type="button" class="btn-flat btn-secondary" (click)="limpiarBorrador()" *ngIf="hasDraft">
+          Deshacer / Limpiar
+        </button>
+      </div>
+
+      <p class="helper-text">
+        Solo se puede postular a convocatorias en estado ABIERTA y una única vez por convocatoria.
+      </p>
+    </form>
+  </section>
+
+  <!-- Tarjeta de Consulta de Solicitudes -->
+  <section class="flat-card">
+    <div class="card-header">
+      <h2>Mis solicitudes</h2>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="idEstudianteConsulta">ID del estudiante a consultar</label>
+        <input 
+          id="idEstudianteConsulta"
+          type="number" 
+          class="form-control" 
+          [(ngModel)]="idEstudianteConsulta" 
+          placeholder="Ingrese ID del estudiante" />
+      </div>
+    </div>
+
+    <button type="button" class="btn-flat btn-secondary" (click)="consultarSolicitudes()" [disabled]="isConsulting">
+      {{ isConsulting ? 'Consultando...' : 'Consultar solicitudes' }}
+    </button>
+
+    <div class="empty-state" *ngIf="solicitudesList.length === 0">
+      <p>No hay solicitudes para mostrar todavía. Consulta un estudiante o crea una nueva solicitud.</p>
+    </div>
+  </section>
+</main>

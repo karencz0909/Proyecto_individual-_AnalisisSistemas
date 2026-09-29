@@ -17,7 +17,7 @@ public class RegistroAuditoriaObserver : ISolicitudObserver
     public void OnCambioEstado(Solicitud solicitud, string estadoAnterior)
     {
         _logger.LogInformation(
-            "🗂 AUDITORÍA: Solicitud #{IdSolicitud} | {Anterior} → {Nuevo} | {Fecha}",
+            "AUDITORÍA: Solicitud #{IdSolicitud} | {Anterior} → {Nuevo} | {Fecha}",
             solicitud.Id, estadoAnterior, solicitud.Estado, DateTime.Now);
     }
 }

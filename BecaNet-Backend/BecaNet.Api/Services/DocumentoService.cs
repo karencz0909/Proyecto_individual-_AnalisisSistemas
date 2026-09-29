@@ -11,10 +11,6 @@ public interface IDocumentoService
     Task<List<DocumentoDTO>> ObtenerPorSolicitudAsync(int idSolicitud);
 }
 
-/// <summary>
-/// Reglas de negocio del Módulo de carga de documentación (US-008).
-/// Valida formato (PDF/JPG/PNG) y tamaño máximo (5 MB) antes de guardar el archivo.
-/// </summary>
 public class DocumentoService : IDocumentoService
 {
     private readonly IDocumentoRepository _documentoRepo;
@@ -36,12 +32,10 @@ public class DocumentoService : IDocumentoService
         if (archivo is null || archivo.Length == 0)
             throw new InvalidOperationException("Debe adjuntar un archivo.");
 
-        // Criterio de aceptación: solo formatos PDF, JPG y PNG
         var extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();
         if (!TiposArchivoPermitidos.Extensiones.Contains(extension))
             throw new InvalidOperationException("Formato de archivo no permitido. Solo se aceptan PDF, JPG y PNG.");
 
-        // Criterio de aceptación: tamaño máximo de 5 MB
         if (archivo.Length > TiposArchivoPermitidos.TamanoMaximoBytes)
             throw new InvalidOperationException("El archivo supera el tamaño máximo permitido (5 MB).");
 

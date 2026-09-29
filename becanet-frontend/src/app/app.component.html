@@ -1,11 +1,7 @@
-<nav class="navbar">
-  <div class="navbar-inner">
-    <span class="brand">🎓 BecaNet</span>
-    <a routerLink="/solicitudes" routerLinkActive="active">Solicitudes</a>
-    <a routerLink="/documentos" routerLinkActive="active">Documentación</a>
-    <a routerLink="/comites" routerLinkActive="active">Comités</a>
-    <a routerLink="/evaluaciones" routerLinkActive="active">Evaluaciones</a>
-  </div>
-</nav>
+<app-navbar></app-navbar>
 
-<router-outlet></router-outlet>
+<div class="main-content">
+  <router-outlet></router-outlet>
+</div>
+
+<app-footer></app-footer>

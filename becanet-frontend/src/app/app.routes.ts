@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { SolicitudesComponent } from './features/solicitudes/solicitudes.component';
+import { SolicitudesComponent } from './pages/solicitudes/solicitudes.component';
 import { DocumentosComponent } from './features/documentos/documentos.component';
 import { ComitesComponent } from './features/comites/comites.component';
 import { EvaluacionesComponent } from './features/evaluaciones/evaluaciones.component';

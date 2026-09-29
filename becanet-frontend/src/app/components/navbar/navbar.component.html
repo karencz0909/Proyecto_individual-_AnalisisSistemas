@@ -1,0 +1,28 @@
+<header class="navbar-container">
+  <div class="navbar-content">
+    <a routerLink="/" class="brand">
+      <div class="brand-logo">B</div>
+      <span class="brand-title">Beca<strong>Net</strong></span>
+    </a>
+
+    <nav class="nav-links">
+      <a routerLink="/solicitudes" routerLinkActive="active">Solicitudes</a>
+      <a routerLink="/documentacion" routerLinkActive="active">Documentación</a>
+      <a routerLink="/comites" routerLinkActive="active">Comités</a>
+      <a routerLink="/evaluaciones" routerLinkActive="active">Evaluaciones</a>
+    </nav>
+
+    <div class="navbar-actions">
+      <!-- Switch de Modo Claro / Oscuro -->
+      <button class="theme-toggle" (click)="themeService.toggleTheme()" [attr.aria-label]="'Cambiar tema'">
+        <span *ngIf="themeService.isDarkMode()">☀️</span>
+        <span *ngIf="!themeService.isDarkMode()">🌙</span>
+      </button>
+
+      <div class="user-badge">
+        <span class="avatar">GT</span>
+        <span class="username">MINEDUC</span>
+      </div>
+    </div>
+  </div>
+</header>

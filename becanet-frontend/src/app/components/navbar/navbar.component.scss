@@ -1,0 +1,116 @@
+.navbar-container {
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background-color var(--transition-speed);
+}
+
+.navbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+
+  .brand-logo {
+    width: 32px;
+    height: 32px;
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+
+  .brand-title {
+    font-size: 1.2rem;
+    color: var(--text-main);
+  }
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+
+  a {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all var(--transition-speed);
+
+    &:hover {
+      color: var(--text-main);
+      background-color: var(--bg-input);
+    }
+
+    &.active {
+      color: var(--color-primary);
+      background-color: var(--color-primary-light);
+      font-weight: 600;
+    }
+  }
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  .theme-toggle {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: background-color var(--transition-speed);
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--bg-input);
+    padding: 4px 12px 4px 6px;
+    border-radius: 20px;
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      background-color: var(--color-primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .username {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+  }
+}
