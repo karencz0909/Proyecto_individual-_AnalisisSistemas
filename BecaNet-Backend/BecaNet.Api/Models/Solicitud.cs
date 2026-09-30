@@ -1,15 +1,13 @@
 namespace BecaNet.Api.Models;
 
-/// <summary>
-/// Solicitud de beca creada por un estudiante dentro de una convocatoria.
-/// Corresponde al Módulo de gestión de solicitudes de beca (US-007).
-/// </summary>
 public class Solicitud
 {
     public int Id { get; set; }
     public DateTime FechaCreacion { get; set; } = DateTime.Now;
     public string Estado { get; set; } = EstadoSolicitud.EnProceso;
     public string? Observaciones { get; set; }
+    public string? MotivoResolucion { get; set; } // motivo de aprobación/rechazo (US-013)
+    public DateTime? FechaResolucion { get; set; } // fecha en que se aprobó/rechazó (US-013)
 
     public int IdEstudiante { get; set; }
     public Estudiante? Estudiante { get; set; }

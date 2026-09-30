@@ -1,5 +1,6 @@
 using BecaNet.Api.DTOs;
 using BecaNet.Api.Services;
+using BecaNet.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BecaNet.Api.Controllers;
@@ -15,9 +16,9 @@ public class DocumentosController : ControllerBase
         _documentoService = documentoService;
     }
 
-    /// <summary>US-008: Como estudiante, quiero cargar los documentos requeridos a mi solicitud.</summary>
+    /// <summary>US-008: cargar un documento a una solicitud.</summary>
     [HttpPost("solicitud/{idSolicitud}")]
-    [RequestSizeLimit(6 * 1024 * 1024)] // margen sobre el límite de negocio de 5 MB
+    [RequestSizeLimit(6 * 1024 * 1024)]
     public async Task<ActionResult<DocumentoDTO>> Cargar(int idSolicitud, IFormFile archivo)
     {
         try
@@ -34,7 +35,6 @@ public class DocumentosController : ControllerBase
     [HttpGet("solicitud/{idSolicitud}")]
     public async Task<ActionResult<List<DocumentoDTO>>> ObtenerPorSolicitud(int idSolicitud)
     {
-        var documentos = await _documentoService.ObtenerPorSolicitudAsync(idSolicitud);
-        return Ok(documentos);
+        return Ok(await _documentoService.ObtenerPorSolicitudAsync(idSolicitud));
     }
 }

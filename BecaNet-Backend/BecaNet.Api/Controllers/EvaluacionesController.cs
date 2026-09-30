@@ -1,5 +1,6 @@
 using BecaNet.Api.DTOs;
 using BecaNet.Api.Services;
+using BecaNet.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BecaNet.Api.Controllers;
@@ -15,7 +16,7 @@ public class EvaluacionesController : ControllerBase
         _evaluacionService = evaluacionService;
     }
 
-    /// <summary>US-012: Como miembro de un comité, quiero registrar mi evaluación de una solicitud.</summary>
+    /// <summary>US-012: registrar la evaluación de una solicitud.</summary>
     [HttpPost]
     public async Task<ActionResult<EvaluacionDTO>> Registrar([FromBody] RegistrarEvaluacionDTO dto)
     {
@@ -33,7 +34,6 @@ public class EvaluacionesController : ControllerBase
     [HttpGet("solicitud/{idSolicitud}")]
     public async Task<ActionResult<List<EvaluacionDTO>>> ObtenerPorSolicitud(int idSolicitud)
     {
-        var evaluaciones = await _evaluacionService.ObtenerPorSolicitudAsync(idSolicitud);
-        return Ok(evaluaciones);
+        return Ok(await _evaluacionService.ObtenerPorSolicitudAsync(idSolicitud));
     }
 }

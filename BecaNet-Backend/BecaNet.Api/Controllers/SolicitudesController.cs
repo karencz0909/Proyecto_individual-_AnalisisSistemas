@@ -1,5 +1,6 @@
 using BecaNet.Api.DTOs;
 using BecaNet.Api.Services;
+using BecaNet.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BecaNet.Api.Controllers;
@@ -15,7 +16,7 @@ public class SolicitudesController : ControllerBase
         _solicitudService = solicitudService;
     }
 
-    /// <summary>US-007: Como estudiante, quiero crear una solicitud de beca.</summary>
+    /// <summary>US-007: crear una solicitud de beca.</summary>
     [HttpPost]
     public async Task<ActionResult<SolicitudDTO>> Crear([FromBody] CrearSolicitudDTO dto)
     {
@@ -40,11 +41,10 @@ public class SolicitudesController : ControllerBase
     [HttpGet("estudiante/{idEstudiante}")]
     public async Task<ActionResult<List<SolicitudDTO>>> ObtenerPorEstudiante(int idEstudiante)
     {
-        var solicitudes = await _solicitudService.ObtenerPorEstudianteAsync(idEstudiante);
-        return Ok(solicitudes);
+        return Ok(await _solicitudService.ObtenerPorEstudianteAsync(idEstudiante));
     }
 
-    /// <summary>US-009: Como estudiante, quiero cancelar mi solicitud.</summary>
+    /// <summary>US-009: cancelar una solicitud.</summary>
     [HttpPut("{id}/cancelar")]
     public async Task<IActionResult> Cancelar(int id, [FromBody] CancelarSolicitudDTO dto)
     {
@@ -52,6 +52,20 @@ public class SolicitudesController : ControllerBase
         {
             await _solicitudService.CancelarSolicitudAsync(id, dto);
             return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { mensaje = ex.Message });
+        }
+    }
+
+    /// <summary>US-013: aprobar o rechazar una solicitud ya evaluada (Fase 3).</summary>
+    [HttpPut("{id}/resolver")]
+    public async Task<ActionResult<SolicitudDTO>> Resolver(int id, [FromBody] ResolverSolicitudDTO dto)
+    {
+        try
+        {
+            return Ok(await _solicitudService.ResolverAsync(id, dto));
         }
         catch (InvalidOperationException ex)
         {

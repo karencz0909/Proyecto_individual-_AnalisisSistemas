@@ -1,5 +1,6 @@
 using BecaNet.Api.DTOs;
 using BecaNet.Api.Services;
+using BecaNet.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BecaNet.Api.Controllers;

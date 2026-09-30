@@ -1,5 +1,6 @@
 using BecaNet.Api.DTOs;
 using BecaNet.Api.Services;
+using BecaNet.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BecaNet.Api.Controllers;
@@ -15,7 +16,7 @@ public class ComitesController : ControllerBase
         _comiteService = comiteService;
     }
 
-    /// <summary>US-010: Como coordinador, quiero crear comités evaluadores y asignarles miembros.</summary>
+    /// <summary>US-010: crear comité evaluador con sus miembros.</summary>
     [HttpPost]
     public async Task<ActionResult<ComiteDTO>> Crear([FromBody] CrearComiteDTO dto)
     {
@@ -43,7 +44,7 @@ public class ComitesController : ControllerBase
         return comite is null ? NotFound() : Ok(comite);
     }
 
-    /// <summary>US-011: Como coordinador, quiero asignar solicitudes recibidas a un comité evaluador.</summary>
+    /// <summary>US-011: asignar solicitudes recibidas a un comité evaluador.</summary>
     [HttpPost("asignar-solicitudes")]
     public async Task<IActionResult> AsignarSolicitudes([FromBody] AsignarSolicitudesDTO dto)
     {
