@@ -1,52 +1,123 @@
-<div class="container">
-  <div class="card">
-    <h2>Cargar documentación (US-008)</h2>
-
-    <div class="alert alert-error" *ngIf="mensajeError">{{ mensajeError }}</div>
-    <div class="alert alert-success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
-
-    <div class="form-group">
-      <label>ID de la solicitud</label>
-      <input type="number" [(ngModel)]="idSolicitud" name="idSolicitud" min="1" />
-    </div>
-
-    <div class="form-group">
-      <label>Archivo (PDF, JPG o PNG — máximo 5 MB)</label>
-      <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onArchivoSeleccionado($event)" />
-    </div>
-
-    <button class="btn btn-primary" (click)="cargarDocumento()" [disabled]="cargando">
-      {{ cargando ? 'Subiendo...' : 'Subir documento' }}
-    </button>
-    <button class="btn btn-secondary" (click)="consultarDocumentos()" [disabled]="cargando" style="margin-left: 8px;">
-      Ver documentos de esta solicitud
-    </button>
+<div class="page-container">
+  <!-- Encabezado superior -->
+  <div class="header-banner">
+    <h2>GESTOR DE DOCUMENTACIÓN</h2>
+    <p>Cargue y consulte los requisitos adjuntos de cada expediente de solicitud.</p>
   </div>
 
-  <div class="card">
-    <h2>Documentos cargados</h2>
+  <!-- Mensajes de feedback -->
+  <div class="alert alert-error" *ngIf="mensajeError">
+     {{ mensajeError }}
+  </div>
 
-    <table *ngIf="documentos.length > 0">
-      <thead>
-        <tr>
-          <th>Archivo</th>
-          <th>Tipo</th>
-          <th>Fecha de carga</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let d of documentos">
-          <td>{{ d.nombreArchivo }}</td>
-          <td>{{ d.tipoArchivo }}</td>
-          <td>{{ d.fechaCarga | date: 'dd/MM/yyyy HH:mm' }}</td>
-          <td><a [href]="d.urlArchivo" target="_blank">Ver archivo</a></td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="alert alert-success" *ngIf="mensajeExito">
+     {{ mensajeExito }}
+  </div>
 
-    <p class="empty-state" *ngIf="documentos.length === 0">
-      Aún no hay documentos cargados para esta solicitud.
-    </p>
+  <div class="content-grid">
+    <!-- Formulario de Carga y Consulta -->
+    <div class="flat-card full-width">
+      <div class="card-header">
+        <span class="step-badge">1</span>
+        <h3>Cargar documentación</h3>
+      </div>
+      <p class="card-subtitle">Adjunte archivos en formato PDF, JPG o PNG (tamaño máximo: 5 MB).</p>
+
+      <div class="form-row">
+        <!-- Campo ID Solicitud -->
+        <div class="form-group">
+          <label for="idSolicitud">ID de la Solicitud</label>
+          <input 
+            type="number" 
+            id="idSolicitud" 
+            name="idSolicitud" 
+            class="flat-input" 
+            placeholder="Ej: 1" 
+            min="1" 
+            [(ngModel)]="idSolicitud" 
+          />
+        </div>
+
+        <!-- Selector de Archivo Personalizado -->
+        <div class="form-group">
+          <label>Seleccionar Archivo (PDF, JPG, PNG)</label>
+          
+          <div class="custom-file-upload">
+            <input 
+              type="file" 
+              id="archivoInput" 
+              class="hidden-file-input" 
+              accept=".pdf,.jpg,.jpeg,.png" 
+              (change)="onArchivoSeleccionado($event)" 
+            />
+            <label for="archivoInput" class="btn-upload">
+               {{ archivoSeleccionado ? 'Cambiar archivo' : 'Seleccionar archivo' }}
+            </label>
+            <span class="file-name">
+              {{ archivoSeleccionado ? archivoSeleccionado.name : 'Ningún archivo seleccionado' }}
+            </span>
+          </div>
+
+          <small class="help-text">Validación automática de formato y tamaño máximo de 5 MB.</small>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="button-group">
+        <button 
+          type="button" 
+          class="btn-primary" 
+          (click)="cargarDocumento()" 
+          [disabled]="cargando || !idSolicitud || !archivoSeleccionado"
+        >
+          {{ cargando ? 'Subiendo...' : 'Subir documento' }}
+        </button>
+
+        <button 
+          type="button" 
+          class="btn-secondary" 
+          (click)="consultarDocumentos()" 
+          [disabled]="cargando || !idSolicitud"
+        >
+           Consultar documentos de esta solicitud
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla / Resultados -->
+    <div class="flat-card full-width">
+      <h3>Documentos cargados</h3>
+
+      <!-- Tabla cuando hay documentos -->
+      <div class="table-container" *ngIf="documentos.length > 0">
+        <table class="flat-table">
+          <thead>
+            <tr>
+              <th>Nombre del archivo</th>
+              <th>Tipo</th>
+              <th>Fecha de carga</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of documentos">
+              <td class="file-name-cell">
+                <span class="file-icon"></span> {{ d.nombreArchivo }}
+              </td>
+              <td><span class="type-badge">{{ d.tipoArchivo }}</span></td>
+              <td>{{ d.fechaCarga | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <a [href]="d.urlArchivo" target="_blank" class="btn-action">Ver archivo</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estado vacío cuando no hay documentos -->
+      <div class="empty-state" *ngIf="documentos.length === 0">
+        <p>Aún no hay documentos cargados para esta solicitud o no ha realizado la búsqueda.</p>
+      </div>
+    </div>
   </div>
 </div>

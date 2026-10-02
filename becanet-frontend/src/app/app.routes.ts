@@ -7,7 +7,7 @@ import { EvaluacionesComponent } from './features/evaluaciones/evaluaciones.comp
 export const routes: Routes = [
   { path: '', redirectTo: 'solicitudes', pathMatch: 'full' },
   { path: 'solicitudes', component: SolicitudesComponent, title: 'BecaNet | Solicitudes' },
-  { path: 'documentos', component: DocumentosComponent, title: 'BecaNet | Documentos' },
+  { path: 'documentacion', component: DocumentosComponent, title: 'BecaNet | Documentación' },
   { path: 'comites', component: ComitesComponent, title: 'BecaNet | Comités' },
   { path: 'evaluaciones', component: EvaluacionesComponent, title: 'BecaNet | Evaluaciones' },
   { path: '**', redirectTo: 'solicitudes' }
