@@ -1,0 +1,42 @@
+<div class="login-contenedor">
+  <div class="login-tarjeta">
+    <h1>Iniciar sesión</h1>
+    <p class="subtitulo">Estudiantes, coordinadores y evaluadores usan el mismo acceso.</p>
+
+    <div class="alerta-error" *ngIf="mensajeError">{{ mensajeError }}</div>
+
+    <form (ngSubmit)="iniciarSesion()" #formLogin="ngForm">
+      <div class="campo">
+        <label for="correo">Correo electrónico</label>
+        <input
+          id="correo"
+          type="email"
+          name="correo"
+          [(ngModel)]="credenciales.correo"
+          placeholder="tucorreo@ejemplo.com"
+          required
+          autocomplete="username" />
+      </div>
+
+      <div class="campo">
+        <label for="contrasena">Contraseña</label>
+        <input
+          id="contrasena"
+          type="password"
+          name="contrasena"
+          [(ngModel)]="credenciales.contrasena"
+          placeholder="••••••••"
+          required
+          autocomplete="current-password" />
+      </div>
+
+      <button type="submit" class="boton-principal" [disabled]="cargando">
+        {{ cargando ? 'Ingresando...' : 'Ingresar' }}
+      </button>
+    </form>
+
+    <p class="enlace-registro">
+      ¿Eres estudiante y no tienes cuenta? <a routerLink="/registro">Regístrate aquí</a>
+    </p>
+  </div>
+</div>

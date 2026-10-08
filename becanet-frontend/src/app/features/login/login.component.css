@@ -1,0 +1,119 @@
+.login-contenedor {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 2rem 1rem;
+}
+
+.login-tarjeta {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.login-tarjeta h1 {
+  color: #f8fafc;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.subtitulo {
+  color: #94a3b8;
+  font-size: 0.88rem;
+  text-align: center;
+  margin-bottom: 1.75rem;
+  line-height: 1.4;
+}
+
+.alerta-error {
+  background-color: #451a03;
+  border: 1px solid #78350f;
+  color: #fde68a;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+}
+
+.campo label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-bottom: 0.5rem;
+}
+
+.campo input {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.campo input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.campo input::placeholder {
+  color: #64748b;
+}
+
+.boton-principal {
+  width: 100%;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 0.85rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.boton-principal:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.boton-principal:disabled {
+  background-color: #475569;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.enlace-registro {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.88rem;
+  color: #94a3b8;
+}
+
+.enlace-registro a {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.enlace-registro a:hover {
+  text-decoration: underline;
+  color: #7dd3fc;
+}

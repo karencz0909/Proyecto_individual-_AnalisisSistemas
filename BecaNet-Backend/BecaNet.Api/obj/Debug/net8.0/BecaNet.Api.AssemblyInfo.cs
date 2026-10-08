@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BecaNet.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c83ce2b74de2c8e9998ed5d91b1e93efc01a33a3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+369148b27a111b2cdda6bb3b83dcd6c64b195c28")]
 [assembly: System.Reflection.AssemblyProductAttribute("BecaNet.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BecaNet.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

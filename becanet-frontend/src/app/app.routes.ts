@@ -1,14 +1,24 @@
 import { Routes } from '@angular/router';
-import { SolicitudesComponent } from './pages/solicitudes/solicitudes.component';
-import { DocumentosComponent } from './features/documentos/documentos.component';
-import { ComitesComponent } from './features/comites/comites.component';
-import { EvaluacionesComponent } from './features/evaluaciones/evaluaciones.component';
+import { LoginComponent } from './features/login/login.component';
+import { SolicitudesAdminComponent } from './pages/solicitudes-admin/solicitudes-admin.component';
+import { MiSolicitudComponent } from './pages/mi-solicitud/mi-solicitud.component';
+import { authGuard } from './guards/auth/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'solicitudes', pathMatch: 'full' },
-  { path: 'solicitudes', component: SolicitudesComponent, title: 'BecaNet | Solicitudes' },
-  { path: 'documentacion', component: DocumentosComponent, title: 'BecaNet | Documentación' },
-  { path: 'comites', component: ComitesComponent, title: 'BecaNet | Comités' },
-  { path: 'evaluaciones', component: EvaluacionesComponent, title: 'BecaNet | Evaluaciones' },
-  { path: '**', redirectTo: 'solicitudes' }
+  // Si entra a la raíz, redirige al login
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+
+  { 
+    path: 'solicitudes-admin', 
+    component: SolicitudesAdminComponent, 
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'mi-solicitud', 
+    component: MiSolicitudComponent, 
+    canActivate: [authGuard] 
+  },
+
+  { path: '**', redirectTo: 'login' }
 ];
