@@ -1,0 +1,121 @@
+<div class="landing-container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <span class="badge">Plataforma Oficial de Becas Educativas</span>
+      <h1>Transforma tu futuro con el apoyo académico que mereces</h1>
+      <p>
+        BecaNet conecta a estudiantes de todo el país con oportunidades de estudio, 
+        asegurando procesos de selección justos, transparentes y 100% digitales.
+      </p>
+
+      <div class="hero-buttons">
+        <a routerLink="/login" class="btn-primary">
+          Postula Ahora
+        </a>
+        <a href="#becas" class="btn-secondary">
+          Explorar Becas
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contador de Estadísticas -->
+  <section class="stats-section">
+    <div class="stat-card">
+      <h3>+15,000</h3>
+      <p>Becas Asignadas</p>
+    </div>
+    <div class="stat-card">
+      <h3>100%</h3>
+      <p>Proceso Digital</p>
+    </div>
+    <div class="stat-card">
+      <h3>98%</h3>
+      <p>Transparencia Evaluativa</p>
+    </div>
+  </section>
+
+  <!-- Explorador Interactivo de Becas -->
+  <section id="becas" class="section">
+    <div class="section-header">
+      <h2>Programas de Becas Disponibles</h2>
+      <p>Selecciona una categoría para explorar las oportunidades vigentes:</p>
+    </div>
+
+    <!-- Filtros Cliqueables -->
+    <div class="filter-tabs">
+      <button 
+        *ngFor="let cat of categorias" 
+        [class.active]="categoriaActiva === cat"
+        (click)="seleccionarCategoria(cat)"
+        class="tab-btn">
+        {{ cat }}
+      </button>
+    </div>
+
+    <!-- Tarjetas de Becas -->
+    <div class="grid-becas">
+      <div *ngFor="let beca of becasFiltradas" class="beca-card">
+        <div class="card-icon">{{ beca.icono }}</div>
+        <span class="card-category">{{ beca.categoria }}</span>
+        <h3>{{ beca.titulo }}</h3>
+        <p><strong>Cobertura:</strong> {{ beca.cobertura }}</p>
+        <p class="requisito"><strong>Requisito:</strong> {{ beca.requisitos }}</p>
+        
+        <a routerLink="/login" class="btn-card-apply">Solicitar esta Beca</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Simulador Interactivo de Elegibilidad -->
+  <section id="simulador" class="section simulator-section">
+    <div class="simulator-card">
+      <h2>Simulador de Elegibilidad Rápida</h2>
+      <p>Ingresa tu promedio académico actual para verificar a qué tipo de beca puedes postular:</p>
+
+      <div class="simulator-input-group">
+        <input 
+          type="number" 
+          [(ngModel)]="promedioInput" 
+          placeholder="Ej. 88" 
+          min="0" 
+          max="100" />
+        <button (click)="evaluarPromedio()" class="btn-simular">Verificar Elegibilidad</button>
+      </div>
+
+      <div *ngIf="resultadoSimulacion" class="sim-result">
+        {{ resultadoSimulacion }}
+      </div>
+    </div>
+  </section>
+
+  <!-- Preguntas Frecuentes (Acordeón) -->
+  <section id="faq" class="section">
+    <div class="section-header">
+      <h2>Preguntas Frecuentes</h2>
+      <p>Resolvemos tus dudas sobre el proceso de postulación:</p>
+    </div>
+
+    <div class="faq-list">
+      <div 
+        *ngFor="let faq of faqs; let i = index" 
+        class="faq-item" 
+        [class.open]="faq.abierto"
+        (click)="toggleFAQ(i)">
+        <div class="faq-question">
+          <h3>{{ faq.pregunta }}</h3>
+          <span class="faq-icon">{{ faq.abierto ? '−' : '+' }}</span>
+        </div>
+        <div *ngIf="faq.abierto" class="faq-answer">
+          <p>{{ faq.respuesta }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2026 BecaNet. Plataforma de gestión y asignación transparente de becas educativas.</p>
+  </footer>
+</div>

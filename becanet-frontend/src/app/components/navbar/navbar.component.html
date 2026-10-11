@@ -5,7 +5,15 @@
       <span class="brand-title">Beca<strong>Net</strong></span>
     </a>
 
-    <nav class="nav-links">
+    <!-- 1. Menú EXCLUSIVO para la Página Principal ('/') -->
+    <nav *ngIf="esPaginaPrincipal()" class="nav-links">
+      <a href="#becas">Programas de Becas</a>
+      <a href="#simulador">Simulador</a>
+      <a href="#faq">Preguntas Frecuentes</a>
+    </nav>
+
+    <!-- 2. Menú para TODAS LAS DEMÁS PÁGINAS (/login, /documentacion, etc.) -->
+    <nav *ngIf="!esPaginaPrincipal()" class="nav-links">
       <a routerLink="/solicitudes" routerLinkActive="active">Solicitudes</a>
       <a routerLink="/documentacion" routerLinkActive="active">Documentación</a>
       <a routerLink="/comites" routerLinkActive="active">Comités</a>
@@ -13,13 +21,19 @@
     </nav>
 
     <div class="navbar-actions">
-      <!-- Switch de Modo Claro / Oscuro -->
+      <!-- Botón de Modo Claro / Oscuro (Disponible en todas las páginas) -->
       <button class="theme-toggle" (click)="themeService.toggleTheme()" [attr.aria-label]="'Cambiar tema'">
         <span *ngIf="themeService.isDarkMode()">☀️</span>
         <span *ngIf="!themeService.isDarkMode()">🌙</span>
       </button>
 
-      <div class="user-badge">
+      <!-- Botón de Iniciar sesión (se muestra si no hay token) -->
+      <a *ngIf="!estaAutenticado()" routerLink="/login" class="btn-login-nav">
+        Iniciar sesión ➔
+      </a>
+
+      <!-- Badge de Usuario (se muestra al iniciar sesión) -->
+      <div *ngIf="estaAutenticado()" class="user-badge">
         <span class="avatar">GT</span>
         <span class="username">MINEDUC</span>
       </div>
