@@ -1,13 +1,21 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { LoginRequest, AuthRespuesta } from '../models/auth.model';
+import { environment } from '../../environments/environment';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
+  private apiUrl = environment.apiUrl;
+
   constructor(private http: HttpClient) {}
 
-  login(credenciales: LoginRequest): Observable<AuthRespuesta> {
-    return this.http.post<AuthRespuesta>('/api/login', credenciales);
+  login(credentials: { correo: string; contrasena: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/login`, credentials);
+  }
+
+  registrarEstudiante(datos: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/registro`, datos);
   }
 }

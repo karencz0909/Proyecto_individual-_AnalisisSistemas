@@ -1,10 +1,10 @@
 .navbar-container {
-  background-color: var(--bg-card);
-  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-card, #0f172a);
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
   position: sticky;
   top: 0;
   z-index: 100;
-  transition: background-color var(--transition-speed);
+  transition: background-color 0.3s ease;
 }
 
 .navbar-content {
@@ -26,9 +26,9 @@
   .brand-logo {
     width: 32px;
     height: 32px;
-    background-color: var(--color-primary);
+    background-color: #2563eb;
     color: #ffffff;
-    border-radius: var(--radius-sm);
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -37,7 +37,7 @@
 
   .brand-title {
     font-size: 1.2rem;
-    color: var(--text-main);
+    color: var(--text-main, #f8fafc);
   }
 }
 
@@ -47,21 +47,21 @@
 
   a {
     padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    color: var(--text-muted);
+    border-radius: 6px;
+    color: var(--text-muted, #94a3b8);
     text-decoration: none;
     font-size: 0.95rem;
     font-weight: 500;
-    transition: all var(--transition-speed);
+    transition: all 0.2s ease;
 
     &:hover {
-      color: var(--text-main);
-      background-color: var(--bg-input);
+      color: var(--text-main, #ffffff);
+      background-color: var(--bg-input, rgba(255, 255, 255, 0.05));
     }
 
     &.active {
-      color: var(--color-primary);
-      background-color: var(--color-primary-light);
+      color: #2563eb;
+      background-color: rgba(37, 99, 235, 0.15);
       font-weight: 600;
     }
   }
@@ -73,8 +73,8 @@
   gap: 16px;
 
   .theme-toggle {
-    background: var(--bg-input);
-    border: 1px solid var(--border-color);
+    background: var(--bg-input, rgba(255, 255, 255, 0.08));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -83,21 +83,21 @@
     align-items: center;
     justify-content: center;
     font-size: 1.1rem;
-    transition: background-color var(--transition-speed);
+    transition: background-color 0.2s ease;
   }
 
   .user-badge {
     display: flex;
     align-items: center;
     gap: 8px;
-    background-color: var(--bg-input);
+    background-color: var(--bg-input, rgba(255, 255, 255, 0.08));
     padding: 4px 12px 4px 6px;
     border-radius: 20px;
 
     .avatar {
       width: 28px;
       height: 28px;
-      background-color: var(--color-primary);
+      background-color: #2563eb;
       color: white;
       border-radius: 50%;
       font-size: 0.75rem;
@@ -110,11 +110,10 @@
     .username {
       font-size: 0.85rem;
       font-weight: 500;
-      color: var(--text-main);
+      color: var(--text-main, #f8fafc);
     }
   }
 }
-
 
 .btn-login-nav {
   background-color: #2563eb;

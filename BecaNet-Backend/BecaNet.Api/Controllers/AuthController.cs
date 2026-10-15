@@ -1,48 +1,47 @@
+using Microsoft.AspNetCore.Mvc;
 using BecaNet.Api.DTOs;
 using BecaNet.Api.Services;
-using BecaNet.Api.Models;
-using Microsoft.AspNetCore.Mvc;
 
-namespace BecaNet.Api.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+namespace BecaNet.Api.Controllers
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
     {
-        _authService = authService;
-    }
+        private readonly IAuthService _authService;
 
-    /// <summary>US-001: Registro de un nuevo estudiante.</summary>
-    [HttpPost("registro")]
-    public async Task<ActionResult<AuthRespuestaDTO>> Registro([FromBody] RegistroEstudianteDTO dto)
-    {
-        try
+        public AuthController(IAuthService authService)
         {
-            var respuesta = await _authService.RegistrarEstudianteAsync(dto);
-            return Ok(respuesta);
+            _authService = authService;
         }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { mensaje = ex.Message });
-        }
-    }
 
-    /// <summary>US-002: Inicio de sesión para cualquier tipo de usuario.</summary>
-    [HttpPost("login")]
-    public async Task<ActionResult<AuthRespuestaDTO>> Login([FromBody] LoginDTO dto)
-    {
-        try
+        [HttpPost("registro")]
+        [HttpPost("register")]
+        public async Task<ActionResult<AuthRespuestaDTO>> Registrar([FromBody] RegistroEstudianteDTO dto)
         {
-            var respuesta = await _authService.LoginAsync(dto);
-            return Ok(respuesta);
+            try
+            {
+                var resultado = await _authService.RegistrarEstudianteAsync(dto);
+                return Ok(resultado);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
         }
-        catch (InvalidOperationException ex)
+
+        [HttpPost("login")]
+        public async Task<ActionResult<AuthRespuestaDTO>> Login([FromBody] LoginDTO dto)
         {
-            return Unauthorized(new { mensaje = ex.Message });
+            try
+            {
+                var resultado = await _authService.LoginAsync(dto);
+                return Ok(resultado);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Unauthorized(new { mensaje = ex.Message });
+            }
         }
     }
 }

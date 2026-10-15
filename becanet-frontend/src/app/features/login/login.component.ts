@@ -4,19 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { SesionService } from '../../services/sesion.service';
-import { LoginRequest, AuthRespuesta } from '../../models/auth.model';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  templateUrl: './login.component.html'
 })
 export class LoginComponent {
-  credenciales: LoginRequest = { correo: '', contrasena: '' };
-  cargando = false;
+  credenciales = { correo: '', contrasena: '' };
   mensajeError = '';
+  cargando = false;
 
   constructor(
     private authService: AuthService,
@@ -24,44 +22,42 @@ export class LoginComponent {
     private router: Router
   ) {}
 
-  iniciarSesion(): void {
+  // Método invocado por (ngSubmit)="iniciarSesion()" en la plantilla HTML
+  iniciarSesion() {
+    this.cargando = true;
     this.mensajeError = '';
 
-    if (!this.credenciales.correo.trim() || !this.credenciales.contrasena.trim()) {
-      this.mensajeError = 'Completa tu correo y tu contraseña para continuar.';
-      return;
-    }
-
-    this.cargando = true;
     this.authService.login(this.credenciales).subscribe({
-      next: (respuesta: AuthRespuesta) => {
-        this.sesionService.iniciarSesion(respuesta);
-        this.cargando = false;
-        this.redirigirSegunRol(respuesta.tipoUsuario);
+      next: (res) => {
+        this.sesionService.iniciarSesion(res);
+        this.redirigirSegunRol(res.role);
       },
-      error: (err: any) => {
-        this.mensajeError = err?.error?.mensaje || 'Correo o contraseña incorrectos.';
+      error: (err) => {
+        this.mensajeError = err.error?.mensaje || 'Credenciales inválidas';
         this.cargando = false;
       }
     });
   }
 
-  private redirigirSegunRol(tipoUsuario: string): void {
-    switch (tipoUsuario) {
-      case 'ADMIN':
-        this.router.navigate(['/solicitudes-admin']);
-        break;
+  // Alias por si el HTML utiliza onSubmit()
+  onSubmit() {
+    this.iniciarSesion();
+  }
+
+  private redirigirSegunRol(rol: string) {
+    switch (rol) {
       case 'ESTUDIANTE':
         this.router.navigate(['/mi-solicitud']);
         break;
       case 'COORDINADOR':
-        this.router.navigate(['/comites']);
+        this.router.navigate(['/solicitudes-admin']);
         break;
       case 'EVALUADOR':
         this.router.navigate(['/evaluaciones']);
         break;
       default:
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
+        break;
     }
   }
 }

@@ -1,0 +1,54 @@
+<div class="container mt-5" style="max-width: 500px;">
+  <div class="card p-4 shadow-sm">
+    <h3 class="text-center mb-4">Registro de Estudiante</h3>
+
+    <div *ngIf="mensajeError" class="alert alert-danger" role="alert">
+      {{ mensajeError }}
+    </div>
+
+    <form (ngSubmit)="onSubmit()">
+      <div class="mb-3">
+        <label class="form-label">Nombre completo</label>
+        <input type="text" [(ngModel)]="datos.nombre" name="nombre" class="form-control" required />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" [(ngModel)]="datos.correo" name="correo" class="form-control" required />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Contraseña</label>
+        <input type="password" [(ngModel)]="datos.contrasena" name="contrasena" class="form-control" required minlength="8" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Teléfono (opcional)</label>
+        <input type="tel" [(ngModel)]="datos.telefono" name="telefono" class="form-control" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Nivel Académico</label>
+        <select [(ngModel)]="datos.nivelAcademico" name="nivelAcademico" class="form-control">
+          <option value="Grado">Grado / Licenciatura</option>
+          <option value="Posgrado">Posgrado / Maestría</option>
+          <option value="Doctorado">Doctorado</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Institución de procedencia</label>
+        <input type="text" [(ngModel)]="datos.institucionProcedencia" name="institucionProcedencia" class="form-control" />
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" [disabled]="cargando">
+        {{ cargando ? 'Registrando...' : 'Crear Cuenta' }}
+      </button>
+    </form>
+
+    <div class="text-center mt-3">
+      <span>¿Ya tienes cuenta? </span>
+      <a routerLink="/login">Inicia sesión aquí</a>
+    </div>
+  </div>
+</div>
