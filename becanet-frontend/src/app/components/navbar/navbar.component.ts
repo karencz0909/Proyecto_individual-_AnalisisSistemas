@@ -15,8 +15,8 @@ export class NavbarComponent {
 
   constructor(
     private sesionService: SesionService,
-    public themeService: ThemeService,
-    private router: Router
+    private router: Router,
+    public themeService: ThemeService
   ) {}
 
   get estaAutenticado(): boolean {
@@ -41,19 +41,14 @@ export class NavbarComponent {
     return nombre.substring(0, 2).toUpperCase();
   }
 
-  get esModoOscuro(): boolean {
-    return localStorage.getItem('becanet_theme') === 'dark';
-  }
-
-  toggleTheme(): void {
-    if (this.themeService && typeof this.themeService.toggleTheme === 'function') {
-      this.themeService.toggleTheme();
-    }
-  }
-
   esPaginaAuth(): boolean {
     const url = this.router.url.split('?')[0];
     return url === '/login' || url === '/registro';
+  }
+
+  esPaginaPrincipal(): boolean {
+    const urlLimpia = this.router.url.split('#')[0].split('?')[0];
+    return urlLimpia === '/' || urlLimpia === '';
   }
 
   cerrarSesion(): void {

@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { SesionService } from '../../services/sesion.service';
 
@@ -9,42 +9,68 @@ import { SesionService } from '../../services/sesion.service';
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   credenciales = { correo: '', contrasena: '' };
   mensajeError = '';
+  mensajeInfo = '';
   cargando = false;
 
   constructor(
     private authService: AuthService,
     private sesionService: SesionService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
-  // Método invocado por (ngSubmit)="iniciarSesion()" en la plantilla HTML
-  iniciarSesion() {
-    this.cargando = true;
-    this.mensajeError = '';
+  ngOnInit(): void {
+    const params = this.route.snapshot.queryParamMap;
+    if (params.get('registrado') === 'true') {
+      this.mensajeInfo = 'Tu cuenta fue creada. Inicia sesión para continuar.';
+    } else if (params.get('sesionExpirada') === 'true') {
+      this.mensajeInfo = 'Tu sesión expiró. Vuelve a iniciar sesión; tus borradores se conservaron.';
+    }
+  }
 
+  iniciarSesion(): void {
+    this.mensajeError = '';
+    this.mensajeInfo = '';
+
+    if (!this.credenciales.correo.trim() || !this.credenciales.contrasena.trim()) {
+      this.mensajeError = 'Completa tu correo y tu contraseña para continuar.';
+      return;
+    }
+
+    this.cargando = true;
     this.authService.login(this.credenciales).subscribe({
       next: (res) => {
-        this.sesionService.iniciarSesion(res);
-        this.redirigirSegunRol(res.role);
+        // El backend responde con "tipoUsuario"; SesionService lo guarda como "role".
+        this.sesionService.iniciarSesion({
+          token: res.token,
+          role: res.tipoUsuario,
+          nombre: res.nombre,
+          correo: res.correo,
+          id: String(res.id)
+        });
+        this.cargando = false;
+        this.redirigirSegunRol(res.tipoUsuario);
       },
-      error: (err) => {
-        this.mensajeError = err.error?.mensaje || 'Credenciales inválidas';
+            error: (err) => {
+        if (err.status === 0) {
+          this.mensajeError = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.';
+        } else if (err.status === 401) {
+          this.mensajeError = err.error?.mensaje || 'Correo o contraseña incorrectos.';
+        } else {
+          this.mensajeError = 'Ocurrió un error en el servidor. Intenta de nuevo en un momento.';
+        }
         this.cargando = false;
       }
     });
   }
 
-  // Alias por si el HTML utiliza onSubmit()
-  onSubmit() {
-    this.iniciarSesion();
-  }
-
-  private redirigirSegunRol(rol: string) {
+  private redirigirSegunRol(rol: string): void {
     switch (rol) {
       case 'ESTUDIANTE':
         this.router.navigate(['/mi-solicitud']);
@@ -57,7 +83,6 @@ export class LoginComponent {
         break;
       default:
         this.router.navigate(['/']);
-        break;
     }
   }
 }

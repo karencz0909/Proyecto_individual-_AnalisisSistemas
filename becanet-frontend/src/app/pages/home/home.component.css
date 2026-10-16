@@ -267,3 +267,14 @@
   opacity: 0.6;
   font-size: 0.85rem;
 }
+
+/* Enlaces que ejecutan una acción (no llevan href) */
+.btn-primary,
+.btn-card-apply {
+  cursor: pointer;
+}
+
+/* Al saltar a #programas / #simulador / #faq, que el título no quede tapado por el menú */
+section[id] {
+  scroll-margin-top: 80px;
+}

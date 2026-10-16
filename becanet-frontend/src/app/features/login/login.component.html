@@ -3,6 +3,7 @@
     <h1>Iniciar sesión</h1>
     <p class="subtitulo">Estudiantes, coordinadores y evaluadores usan el mismo acceso.</p>
 
+    <div class="alerta-info" *ngIf="mensajeInfo">{{ mensajeInfo }}</div>
     <div class="alerta-error" *ngIf="mensajeError">{{ mensajeError }}</div>
 
     <form (ngSubmit)="iniciarSesion()" #formLogin="ngForm">

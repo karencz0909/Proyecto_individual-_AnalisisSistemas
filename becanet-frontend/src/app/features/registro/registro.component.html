@@ -1,54 +1,94 @@
-<div class="container mt-5" style="max-width: 500px;">
-  <div class="card p-4 shadow-sm">
-    <h3 class="text-center mb-4">Registro de Estudiante</h3>
+<div class="auth-page-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>Registro de Estudiante</h2>
+      <p>Crea tu cuenta para iniciar tu postulación de beca</p>
+    </div>
 
-    <div *ngIf="mensajeError" class="alert alert-danger" role="alert">
+    <div *ngIf="mensajeError" class="alert alert-danger">
       {{ mensajeError }}
     </div>
 
-    <form (ngSubmit)="onSubmit()">
-      <div class="mb-3">
-        <label class="form-label">Nombre completo</label>
-        <input type="text" [(ngModel)]="datos.nombre" name="nombre" class="form-control" required />
+    <form (ngSubmit)="onSubmit()" #registroForm="ngForm">
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input 
+          type="text" 
+          [(ngModel)]="datos.nombre" 
+          name="nombre" 
+          class="form-input" 
+          placeholder="Ej: Juan Pérez" 
+          required 
+        />
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Correo electrónico</label>
-        <input type="email" [(ngModel)]="datos.correo" name="correo" class="form-control" required />
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input 
+          type="email" 
+          [(ngModel)]="datos.correo" 
+          name="correo" 
+          class="form-input" 
+          placeholder="tucorreo@ejemplo.com" 
+          required 
+        />
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Contraseña</label>
-        <input type="password" [(ngModel)]="datos.contrasena" name="contrasena" class="form-control" required minlength="8" />
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input 
+          type="password" 
+          [(ngModel)]="datos.contrasena" 
+          name="contrasena" 
+          class="form-input" 
+          placeholder="••••••••" 
+          required 
+          minlength="6" 
+        />
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Teléfono (opcional)</label>
-        <input type="tel" [(ngModel)]="datos.telefono" name="telefono" class="form-control" />
+      <div class="form-group">
+        <label>Teléfono (opcional)</label>
+        <input 
+          type="tel" 
+          [(ngModel)]="datos.telefono" 
+          name="telefono" 
+          class="form-input" 
+          placeholder="Ej: 55554444" 
+        />
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Nivel Académico</label>
-        <select [(ngModel)]="datos.nivelAcademico" name="nivelAcademico" class="form-control">
-          <option value="Grado">Grado / Licenciatura</option>
-          <option value="Posgrado">Posgrado / Maestría</option>
-          <option value="Doctorado">Doctorado</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nivel Académico</label>
+          <select [(ngModel)]="datos.nivelAcademico" name="nivelAcademico" class="form-select">
+            <option value="Grado">Grado / Licenciatura</option>
+            <option value="Posgrado">Posgrado / Maestría</option>
+            <option value="Doctorado">Doctorado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Institución de procedencia</label>
+          <input 
+            type="text" 
+            [(ngModel)]="datos.institucionProcedencia" 
+            name="institucionProcedencia" 
+            class="form-input" 
+            placeholder="Ej: UMG" 
+            required 
+          />
+        </div>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Institución de procedencia</label>
-        <input type="text" [(ngModel)]="datos.institucionProcedencia" name="institucionProcedencia" class="form-control" />
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100" [disabled]="cargando">
+      <button type="submit" class="btn-submit" [disabled]="cargando || !registroForm.form.valid">
         {{ cargando ? 'Registrando...' : 'Crear Cuenta' }}
       </button>
     </form>
 
-    <div class="text-center mt-3">
+    <div class="auth-footer">
       <span>¿Ya tienes cuenta? </span>
-      <a routerLink="/login">Inicia sesión aquí</a>
+      <a routerLink="/login" class="link-auth">Inicia sesión aquí</a>
     </div>
   </div>
 </div>

@@ -8,7 +8,8 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-registro',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './registro.component.html'
+  templateUrl: './registro.component.html',
+  styleUrl: '../login/login.component.css'
 })
 export class RegistroComponent {
   datos = {
@@ -16,7 +17,7 @@ export class RegistroComponent {
     correo: '',
     contrasena: '',
     telefono: '',
-    nivelAcademico: 'Grado',
+    nivelAcademico: 'Universitario',
     institucionProcedencia: ''
   };
   mensajeError = '';
@@ -24,15 +25,25 @@ export class RegistroComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  onSubmit() {
-    this.cargando = true;
+  onSubmit(): void {
     this.mensajeError = '';
+
+    if (!this.datos.nombre.trim() || !this.datos.correo.trim()) {
+      this.mensajeError = 'Completa tu nombre y tu correo.';
+      return;
+    }
+    if (this.datos.contrasena.length < 8) {
+      this.mensajeError = 'La contraseña debe tener al menos 8 caracteres.';
+      return;
+    }
+
+    this.cargando = true;
     this.authService.registrarEstudiante(this.datos).subscribe({
       next: () => {
         this.router.navigate(['/login'], { queryParams: { registrado: 'true' } });
       },
       error: (err) => {
-        this.mensajeError = err.error?.mensaje || 'Error al registrar la cuenta.';
+        this.mensajeError = err.error?.mensaje || 'No se pudo crear la cuenta.';
         this.cargando = false;
       }
     });

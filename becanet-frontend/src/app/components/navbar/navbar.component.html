@@ -1,16 +1,16 @@
 <nav class="navbar-container">
   <div class="navbar-content">
-    
-    <!-- Logo e Identidad -->
+
+    <!-- Logo Brand -->
     <a class="brand" routerLink="/">
-      <div class="brand-logo">B</div>
+      <span class="brand-logo">B</span>
       <span class="brand-title"><strong>BecaNet</strong></span>
     </a>
 
-    <!-- Opciones de Navegación -->
+    <!-- Opciones de Navegación (Ocultas en /login y /registro) -->
     <div class="nav-links" *ngIf="!esPaginaAuth()">
-      
-      <!-- Menú Público (Invitados) -->
+
+      <!-- Menú Público (Invitado) -->
       <ng-container *ngIf="!estaAutenticado">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
         <a routerLink="/" fragment="programas">Programas de Becas</a>
@@ -18,47 +18,46 @@
         <a routerLink="/" fragment="faq">Preguntas Frecuentes</a>
       </ng-container>
 
-      <!-- Menú Estudiante -->
+      <!-- Menú ESTUDIANTE -->
       <ng-container *ngIf="estaAutenticado && rol === 'ESTUDIANTE'">
         <a routerLink="/mi-solicitud" routerLinkActive="active">Mi solicitud</a>
         <a routerLink="/documentacion" routerLinkActive="active">Documentación</a>
       </ng-container>
 
-      <!-- Menú Coordinador -->
+      <!-- Menú COORDINADOR -->
       <ng-container *ngIf="estaAutenticado && rol === 'COORDINADOR'">
-        <a routerLink="/convocatorias" routerLinkActive="active">Convocatorias</a>
         <a routerLink="/solicitudes-admin" routerLinkActive="active">Solicitudes</a>
         <a routerLink="/comites" routerLinkActive="active">Comités</a>
-        <a routerLink="/reportes" routerLinkActive="active">Reportes</a>
       </ng-container>
 
-      <!-- Menú Evaluador -->
+      <!-- Menú EVALUADOR -->
       <ng-container *ngIf="estaAutenticado && rol === 'EVALUADOR'">
         <a routerLink="/evaluaciones" routerLinkActive="active">Evaluaciones</a>
       </ng-container>
 
     </div>
 
-    <!-- Acciones (Botón Claro/Oscuro, Login y Perfil) -->
+    <!-- Acciones Derecha -->
     <div class="navbar-actions">
-      
-      <!-- Botón de cambio de Tema Claro / Oscuro -->
-      <button class="theme-toggle" (click)="toggleTheme()" type="button" title="Cambiar tema">
-        {{ esModoOscuro ? '☀️' : '🌙' }}
+
+      <!-- Botón de Modo Claro / Oscuro (visible en todas las páginas) -->
+      <button class="theme-toggle" (click)="themeService.toggleTheme()" aria-label="Cambiar tema">
+        <span *ngIf="themeService.isDarkMode()">☀️</span>
+        <span *ngIf="!themeService.isDarkMode()">🌙</span>
       </button>
 
-      <!-- Botón Iniciar Sesión para Invitados -->
+      <!-- Botón de Iniciar Sesión para Invitados -->
       <ng-container *ngIf="!estaAutenticado && !esPaginaAuth()">
-        <a routerLink="/login" class="btn-login-nav">Iniciar sesión →</a>
+        <a routerLink="/login" class="btn-login-nav">Iniciar sesión</a>
       </ng-container>
 
-      <!-- Perfil y Cierre de Sesión -->
+      <!-- Usuario autenticado: insignia + Cerrar sesión -->
       <ng-container *ngIf="estaAutenticado && !esPaginaAuth()">
         <div class="user-badge">
           <span class="avatar">{{ iniciales }}</span>
           <span class="username">{{ nombreUsuario }}</span>
         </div>
-        <button (click)="cerrarSesion()" class="btn btn-outline-danger btn-sm" type="button">
+        <button (click)="cerrarSesion()" class="btn-logout">
           Cerrar sesión
         </button>
       </ng-container>

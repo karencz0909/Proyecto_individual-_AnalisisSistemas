@@ -1,47 +1,47 @@
-using Microsoft.AspNetCore.Mvc;
 using BecaNet.Api.DTOs;
 using BecaNet.Api.Services;
+using Microsoft.AspNetCore.Mvc;
 
-namespace BecaNet.Api.Controllers
+namespace BecaNet.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    private readonly IAuthService _authService;
+
+    public AuthController(IAuthService authService)
     {
-        private readonly IAuthService _authService;
+        _authService = authService;
+    }
 
-        public AuthController(IAuthService authService)
+    /// <summary>US-001: Registro de un nuevo estudiante.</summary>
+    [HttpPost("registro")]
+    public async Task<ActionResult<AuthRespuestaDTO>> Registro([FromBody] RegistroEstudianteDTO dto)
+    {
+        try
         {
-            _authService = authService;
+            var respuesta = await _authService.RegistrarEstudianteAsync(dto);
+            return Ok(respuesta);
         }
-
-        [HttpPost("registro")]
-        [HttpPost("register")]
-        public async Task<ActionResult<AuthRespuestaDTO>> Registrar([FromBody] RegistroEstudianteDTO dto)
+        catch (InvalidOperationException ex)
         {
-            try
-            {
-                var resultado = await _authService.RegistrarEstudianteAsync(dto);
-                return Ok(resultado);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { mensaje = ex.Message });
-            }
+            return BadRequest(new { mensaje = ex.Message });
         }
+    }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<AuthRespuestaDTO>> Login([FromBody] LoginDTO dto)
+    /// <summary>US-002: Inicio de sesión para cualquier tipo de usuario.</summary>
+    [HttpPost("login")]
+    public async Task<ActionResult<AuthRespuestaDTO>> Login([FromBody] LoginDTO dto)
+    {
+        try
         {
-            try
-            {
-                var resultado = await _authService.LoginAsync(dto);
-                return Ok(resultado);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Unauthorized(new { mensaje = ex.Message });
-            }
+            var respuesta = await _authService.LoginAsync(dto);
+            return Ok(respuesta);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Unauthorized(new { mensaje = ex.Message });
         }
     }
 }
