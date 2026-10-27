@@ -1,100 +1,179 @@
-<app-hero-banner></app-hero-banner>
+<div class="page">
 
-<main class="page-container">
-  <!-- Mensaje de Feedback Global -->
-  <div *ngIf="feedbackMessage" class="feedback-alert" [ngClass]="'alert-' + feedbackMessage.type">
-    <span>{{ feedbackMessage.text }}</span>
+  <header class="page-hero">
+    <h1>Mi solicitud de beca</h1>
+    <p>Hola, {{ nombre }}. Aquí postulas, subes tus documentos y ves el estado de tu solicitud en tiempo real.</p>
+  </header>
+
+  <div class="alert" *ngIf="aviso" [ngClass]="'alert-' + aviso.tipo" role="status">
+    <span>{{ aviso.texto }}</span>
+    <button class="alert-close" (click)="aviso = null" aria-label="Cerrar aviso">×</button>
   </div>
 
-  <!-- Tarjeta de Formulario de Postulación -->
-  <section class="flat-card">
-    <div class="card-header">
-      <h2>Postular a una convocatoria</h2>
-      <span *ngIf="isSavingDraft" class="badge-draft">Guardando borrador...</span>
-      <span *ngIf="!isSavingDraft && hasDraft" class="badge-draft saved">Borrador guardado automáticamente</span>
+  <p class="muted" *ngIf="cargando">Cargando tu información...</p>
+
+  <ng-container *ngIf="!cargando">
+    <!-- Si ya tiene solicitudes, se muestran primero; si no, primero el formulario -->
+    <ng-container *ngIf="solicitudes.length > 0">
+      <ng-container *ngTemplateOutlet="misSolicitudes"></ng-container>
+      <ng-container *ngTemplateOutlet="nuevaSolicitud"></ng-container>
+    </ng-container>
+    <ng-container *ngIf="solicitudes.length === 0">
+      <ng-container *ngTemplateOutlet="nuevaSolicitud"></ng-container>
+    </ng-container>
+  </ng-container>
+
+</div>
+
+<!-- ====================== MIS SOLICITUDES ====================== -->
+<ng-template #misSolicitudes>
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">Mis solicitudes</h2>
+        <p class="card-sub">
+          El estado se actualiza solo.
+          <span *ngIf="ultimaActualizacion">Última actualización: {{ ultimaActualizacion | date: 'HH:mm:ss' }}</span>
+        </p>
+      </div>
+      <button class="btn btn-ghost btn-sm" (click)="cargarSolicitudes()">↻ Actualizar</button>
     </div>
 
-    <form (submit)="$event.preventDefault(); crearSolicitud()">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="idEstudiante">ID del estudiante *</label>
-          <input 
-            id="idEstudiante"
-            type="number" 
-            class="form-control" 
-            [(ngModel)]="formData.idEstudiante" 
-            name="idEstudiante"
-            (ngModelChange)="onFormChange()"
-            placeholder="Ej. 1024"
-            required />
+    <article class="solicitud" *ngFor="let s of solicitudes" [class.cancelada]="s.estado === 'CANCELADA'">
+      <div class="solicitud-head">
+        <div>
+          <h3>{{ s.tituloConvocatoria }}</h3>
+          <span class="muted small">Solicitud #{{ s.id }}</span>
         </div>
-
-        <div class="form-group">
-          <label for="idConvocatoria">ID de la convocatoria *</label>
-          <input 
-            id="idConvocatoria"
-            type="number" 
-            class="form-control" 
-            [(ngModel)]="formData.idConvocatoria" 
-            name="idConvocatoria"
-            (ngModelChange)="onFormChange()"
-            placeholder="Ej. 5"
-            required />
-        </div>
+        <span class="badge" [ngClass]="etiqueta(s).clase">{{ etiqueta(s).texto }}</span>
       </div>
 
-      <div class="form-group">
-        <label for="observaciones">Observaciones (Opcional)</label>
-        <textarea 
-          id="observaciones"
-          class="form-control" 
-          rows="3" 
-          [(ngModel)]="formData.observaciones" 
-          name="observaciones"
-          (ngModelChange)="onFormChange()"
-          placeholder="Ingrese comentarios adicionales sobre su postulación..."></textarea>
+      <!-- Línea de avance -->
+      <ol class="tracker" *ngIf="s.estado !== 'CANCELADA'">
+        <li *ngFor="let p of pasos(s)" [ngClass]="'paso-' + p.estado">
+          <span class="punto">
+            <ng-container [ngSwitch]="p.estado">
+              <ng-container *ngSwitchCase="'hecho'">✓</ng-container>
+              <ng-container *ngSwitchCase="'error'">✕</ng-container>
+              <ng-container *ngSwitchDefault>•</ng-container>
+            </ng-container>
+          </span>
+          <strong>{{ p.titulo }}</strong>
+          <small>{{ p.detalle }}</small>
+        </li>
+      </ol>
+
+      <!-- Documentación requerida -->
+      <div class="docs" *ngIf="s.estado !== 'CANCELADA'">
+        <div class="doc-item" [class.ok]="s.tieneCertificacionEstudios">
+          <span class="doc-icono">{{ s.tieneCertificacionEstudios ? '✓' : '!' }}</span>
+          <div>
+            <strong>Certificación de estudios</strong>
+            <small>{{ s.tieneCertificacionEstudios ? 'Documento recibido' : 'Obligatorio para que tu solicitud sea revisada' }}</small>
+          </div>
+        </div>
+        <a *ngIf="!s.tieneCertificacionEstudios && s.estado === 'EN_PROCESO'"
+           class="btn btn-primary btn-sm"
+           routerLink="/documentacion"
+           [queryParams]="{ solicitud: s.id }">
+          Subir certificación
+        </a>
       </div>
 
-      <div class="card-actions">
-        <button type="submit" class="btn-flat btn-primary" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Procesando...' : 'Crear solicitud' }}
+      <div class="motivo" *ngIf="s.motivo">
+        <span class="muted small">Motivo de tu solicitud</span>
+        <p>{{ s.motivo }}</p>
+      </div>
+
+      <div class="alert alert-error" *ngIf="s.estado === 'RECHAZADA' && s.motivoResolucion">
+        <span><strong>Motivo del rechazo:</strong> {{ s.motivoResolucion }}</span>
+      </div>
+      <div class="alert alert-success" *ngIf="s.estado === 'APROBADA'">
+        <span><strong>¡Tu beca fue aprobada!</strong> <span *ngIf="s.motivoResolucion">{{ s.motivoResolucion }}</span></span>
+      </div>
+
+      <!-- Cancelar con confirmación -->
+      <div class="acciones" *ngIf="puedeCancelar(s)">
+        <button *ngIf="cancelandoId !== s.id" class="btn btn-danger btn-sm" (click)="pedirCancelar(s.id)">
+          Cancelar solicitud
         </button>
+        <div class="confirmar" *ngIf="cancelandoId === s.id">
+          <span>¿Seguro que quieres cancelarla?</span>
+          <button class="btn btn-danger-solid btn-sm" (click)="confirmarCancelar(s)">Sí, cancelar</button>
+          <button class="btn btn-ghost btn-sm" (click)="descartarCancelar()">No, mantener</button>
+        </div>
+      </div>
+    </article>
+  </section>
+</ng-template>
 
-        <button type="button" class="btn-flat btn-secondary" (click)="limpiarBorrador()" *ngIf="hasDraft">
+<!-- ====================== NUEVA SOLICITUD ====================== -->
+<ng-template #nuevaSolicitud>
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title">Nueva solicitud</h2>
+        <p class="card-sub">Elige la convocatoria y cuéntanos por qué la necesitas.</p>
+      </div>
+      <span class="badge badge-green" *ngIf="borradorGuardado">Borrador guardado automáticamente</span>
+    </div>
+
+    <p class="muted" *ngIf="convocatorias.length === 0">
+      Por ahora no hay convocatorias abiertas. Vuelve pronto.
+    </p>
+
+    <ng-container *ngIf="convocatorias.length > 0">
+      <div class="paso-titulo"><span class="num">1</span> Elige una convocatoria</div>
+
+      <div class="convocatorias">
+        <button type="button"
+                class="conv"
+                *ngFor="let c of convocatorias"
+                [class.elegida]="convocatoriaElegida === c.id"
+                [class.bloqueada]="yaPostulo(c.id)"
+                [disabled]="yaPostulo(c.id)"
+                (click)="elegir(c)">
+          <strong>{{ c.titulo }}</strong>
+          <span class="muted small" *ngIf="c.requisitos">{{ c.requisitos }}</span>
+          <span class="conv-pie">
+            <span class="badge badge-yellow" *ngIf="!yaPostulo(c.id)">Cierra en {{ diasRestantes(c) }} días</span>
+            <span class="badge badge-gray" *ngIf="yaPostulo(c.id)">Ya postulaste</span>
+          </span>
+        </button>
+      </div>
+
+      <p class="muted small" *ngIf="convocatoriasDisponibles.length === 0">
+        Ya postulaste a todas las convocatorias abiertas.
+      </p>
+
+      <div class="paso-titulo"><span class="num">2</span> Cuéntanos el motivo de tu solicitud</div>
+
+      <div class="field">
+        <label for="motivo">¿Por qué solicitas esta beca?</label>
+        <textarea id="motivo"
+                  class="input"
+                  rows="5"
+                  [(ngModel)]="motivo"
+                  (ngModelChange)="guardarBorrador()"
+                  [class.invalido]="motivo.length > 0 && !motivoValido"
+                  placeholder="Cuéntanos tu situación, tus metas y cómo te ayudaría esta beca..."></textarea>
+        <span class="contador" [class.ok]="motivoValido">
+          {{ motivo.trim().length }} / {{ MIN_MOTIVO }} caracteres mínimos
+        </span>
+      </div>
+
+      <div class="botones">
+        <button class="btn btn-primary" (click)="enviar()" [disabled]="!puedeEnviar">
+          {{ enviando ? 'Enviando...' : 'Enviar solicitud' }}
+        </button>
+        <button class="btn btn-ghost" (click)="limpiarFormulario()" [disabled]="enviando">
           Deshacer / Limpiar
         </button>
       </div>
-
-      <p class="helper-text">
-        Solo se puede postular a convocatorias en estado ABIERTA y una única vez por convocatoria.
+      <p class="muted small hint" *ngIf="!puedeEnviar && !enviando">
+        <ng-container *ngIf="convocatoriaElegida === null">Elige una convocatoria para continuar. </ng-container>
+        <ng-container *ngIf="!motivoValido">Escribe al menos {{ MIN_MOTIVO }} caracteres en el motivo.</ng-container>
       </p>
-    </form>
+    </ng-container>
   </section>
-
-  <!-- Tarjeta de Consulta de Solicitudes -->
-  <section class="flat-card">
-    <div class="card-header">
-      <h2>Mis solicitudes</h2>
-    </div>
-
-    <div class="form-grid">
-      <div class="form-group">
-        <label for="idEstudianteConsulta">ID del estudiante a consultar</label>
-        <input 
-          id="idEstudianteConsulta"
-          type="number" 
-          class="form-control" 
-          [(ngModel)]="idEstudianteConsulta" 
-          placeholder="Ingrese ID del estudiante" />
-      </div>
-    </div>
-
-    <button type="button" class="btn-flat btn-secondary" (click)="consultarSolicitudes()" [disabled]="isConsulting">
-      {{ isConsulting ? 'Consultando...' : 'Consultar solicitudes' }}
-    </button>
-
-    <div class="empty-state" *ngIf="solicitudesList.length === 0">
-      <p>No hay solicitudes para mostrar todavía. Consulta un estudiante o crea una nueva solicitud.</p>
-    </div>
-  </section>
-</main>
+</ng-template>

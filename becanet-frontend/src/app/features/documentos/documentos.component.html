@@ -1,123 +1,167 @@
-<div class="page-container">
-  <!-- Encabezado superior -->
-  <div class="header-banner">
-    <h2>GESTOR DE DOCUMENTACIÓN</h2>
-    <p>Cargue y consulte los requisitos adjuntos de cada expediente de solicitud.</p>
+<div class="page">
+
+  <header class="page-hero">
+    <h1>Mi documentación</h1>
+    <p>Sube los documentos que necesita tu solicitud. Arrastra el archivo o elígelo desde tu equipo.</p>
+  </header>
+
+  <div class="alert" *ngIf="aviso" [ngClass]="'alert-' + aviso.tipo" role="status">
+    <span>{{ aviso.texto }}</span>
+    <button class="alert-close" (click)="aviso = null" aria-label="Cerrar aviso">×</button>
   </div>
 
-  <!-- Mensajes de feedback -->
-  <div class="alert alert-error" *ngIf="mensajeError">
-     {{ mensajeError }}
+  <p class="muted" *ngIf="cargando">Cargando tus solicitudes...</p>
+
+  <!-- Sin solicitudes -->
+  <div class="empty" *ngIf="!cargando && solicitudes.length === 0">
+    <strong>Todavía no tienes una solicitud</strong>
+    Primero crea tu solicitud para poder adjuntar documentos.
+    <div class="vacio-accion">
+      <a class="btn btn-primary" routerLink="/mi-solicitud">Crear mi solicitud</a>
+    </div>
   </div>
 
-  <div class="alert alert-success" *ngIf="mensajeExito">
-     {{ mensajeExito }}
-  </div>
+  <ng-container *ngIf="!cargando && solicitudes.length > 0">
 
-  <div class="content-grid">
-    <!-- Formulario de Carga y Consulta -->
-    <div class="flat-card full-width">
-      <div class="card-header">
-        <span class="step-badge">1</span>
-        <h3>Cargar documentación</h3>
+    <!-- Selector de solicitud (solo si tiene más de una) -->
+    <section class="card" *ngIf="solicitudes.length > 1">
+      <div class="field" style="margin-bottom: 0">
+        <label for="solicitud">¿Para qué solicitud son los documentos?</label>
+        <select id="solicitud" class="input" [(ngModel)]="idSeleccionada" (ngModelChange)="alCambiarSolicitud()">
+          <option *ngFor="let s of solicitudes" [ngValue]="s.id">
+            {{ s.tituloConvocatoria }} · Solicitud #{{ s.id }}
+          </option>
+        </select>
       </div>
-      <p class="card-subtitle">Adjunte archivos en formato PDF, JPG o PNG (tamaño máximo: 5 MB).</p>
+    </section>
 
-      <div class="form-row">
-        <!-- Campo ID Solicitud -->
-        <div class="form-group">
-          <label for="idSolicitud">ID de la Solicitud</label>
-          <input 
-            type="number" 
-            id="idSolicitud" 
-            name="idSolicitud" 
-            class="flat-input" 
-            placeholder="Ej: 1" 
-            min="1" 
-            [(ngModel)]="idSolicitud" 
-          />
+    <p class="muted small solicitud-actual" *ngIf="solicitudes.length === 1 && solicitudActual">
+      Documentos de: <strong>{{ solicitudActual.tituloConvocatoria }}</strong> · Solicitud #{{ solicitudActual.id }}
+    </p>
+
+    <!-- Avance de requisitos -->
+    <section class="card requisitos">
+      <div class="card-head">
+        <div>
+          <h2 class="card-title">Requisitos obligatorios</h2>
+          <p class="card-sub">{{ tieneCertificacion ? '1' : '0' }} de 1 completado</p>
         </div>
+        <span class="badge" [ngClass]="tieneCertificacion ? 'badge-green' : 'badge-yellow'">
+          {{ tieneCertificacion ? 'Documentación completa' : 'Falta la certificación' }}
+        </span>
+      </div>
+      <div class="progress"><span [style.width.%]="tieneCertificacion ? 100 : 0"></span></div>
+    </section>
 
-        <!-- Selector de Archivo Personalizado -->
-        <div class="form-group">
-          <label>Seleccionar Archivo (PDF, JPG, PNG)</label>
-          
-          <div class="custom-file-upload">
-            <input 
-              type="file" 
-              id="archivoInput" 
-              class="hidden-file-input" 
-              accept=".pdf,.jpg,.jpeg,.png" 
-              (change)="onArchivoSeleccionado($event)" 
-            />
-            <label for="archivoInput" class="btn-upload">
-               {{ archivoSeleccionado ? 'Cambiar archivo' : 'Seleccionar archivo' }}
-            </label>
-            <span class="file-name">
-              {{ archivoSeleccionado ? archivoSeleccionado.name : 'Ningún archivo seleccionado' }}
-            </span>
+    <!-- ===================== CERTIFICACIÓN DE ESTUDIOS ===================== -->
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2 class="card-title">Certificación de estudios <span class="badge badge-red">Obligatorio</span></h2>
+          <p class="card-sub">Constancia emitida por tu centro educativo que acredite que estás estudiando. PDF, JPG o PNG, máximo 5 MB.</p>
+        </div>
+      </div>
+
+      <!-- Ya cargada -->
+      <div class="cargado" *ngFor="let d of certificaciones; let primero = first">
+        <span class="check">✓</span>
+        <div class="cargado-info">
+          <strong>{{ d.nombreArchivo }}</strong>
+          <small>Cargado el {{ d.fechaCarga | date: 'dd/MM/yyyy HH:mm' }}<span *ngIf="primero"> · versión vigente</span></small>
+        </div>
+        <a class="btn btn-ghost btn-sm" [href]="urlDe(d)" target="_blank" rel="noopener">Ver archivo</a>
+      </div>
+
+      <!-- Zona para soltar el archivo -->
+      <div class="zona"
+           [class.activa]="arrastrando[CERT]"
+           [class.con-archivo]="archivos[CERT]"
+           (dragover)="alArrastrarSobre(CERT, $event)"
+           (dragleave)="alSalirDeZona(CERT)"
+           (drop)="alSoltar(CERT, $event)">
+
+        <ng-container *ngIf="!archivos[CERT]">
+          <div class="zona-icono">⬆</div>
+          <p><strong>{{ tieneCertificacion ? 'Arrastra aquí para reemplazarla' : 'Arrastra tu certificación aquí' }}</strong></p>
+          <p class="muted small">o</p>
+          <label class="btn btn-ghost btn-sm">
+            Elegir archivo
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="alElegirArchivo(CERT, $event)" hidden />
+          </label>
+        </ng-container>
+
+        <ng-container *ngIf="archivos[CERT] as f">
+          <div class="elegido">
+            <span class="doc-icono">📄</span>
+            <div>
+              <strong>{{ f.name }}</strong>
+              <small class="muted">{{ formatoTamano(f.size) }}</small>
+            </div>
           </div>
+          <div class="botones">
+            <button class="btn btn-primary btn-sm" (click)="subir(CERT)" [disabled]="subiendo[CERT]">
+              {{ subiendo[CERT] ? 'Subiendo...' : 'Subir documento' }}
+            </button>
+            <button class="btn btn-ghost btn-sm" (click)="quitar(CERT)" [disabled]="subiendo[CERT]">Quitar</button>
+          </div>
+        </ng-container>
+      </div>
+      <p class="error-linea" *ngIf="errores[CERT]">{{ errores[CERT] }}</p>
+    </section>
 
-          <small class="help-text">Validación automática de formato y tamaño máximo de 5 MB.</small>
+    <!-- ===================== OTROS DOCUMENTOS ===================== -->
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2 class="card-title">Otros documentos <span class="badge badge-gray">Opcional</span></h2>
+          <p class="card-sub">Cartas, constancias o cualquier documento que respalde tu solicitud.</p>
         </div>
       </div>
 
-      <!-- Botones de Acción -->
-      <div class="button-group">
-        <button 
-          type="button" 
-          class="btn-primary" 
-          (click)="cargarDocumento()" 
-          [disabled]="cargando || !idSolicitud || !archivoSeleccionado"
-        >
-          {{ cargando ? 'Subiendo...' : 'Subir documento' }}
-        </button>
-
-        <button 
-          type="button" 
-          class="btn-secondary" 
-          (click)="consultarDocumentos()" 
-          [disabled]="cargando || !idSolicitud"
-        >
-           Consultar documentos de esta solicitud
-        </button>
-      </div>
-    </div>
-
-    <!-- Tabla / Resultados -->
-    <div class="flat-card full-width">
-      <h3>Documentos cargados</h3>
-
-      <!-- Tabla cuando hay documentos -->
-      <div class="table-container" *ngIf="documentos.length > 0">
-        <table class="flat-table">
-          <thead>
-            <tr>
-              <th>Nombre del archivo</th>
-              <th>Tipo</th>
-              <th>Fecha de carga</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let d of documentos">
-              <td class="file-name-cell">
-                <span class="file-icon"></span> {{ d.nombreArchivo }}
-              </td>
-              <td><span class="type-badge">{{ d.tipoArchivo }}</span></td>
-              <td>{{ d.fechaCarga | date: 'dd/MM/yyyy HH:mm' }}</td>
-              <td>
-                <a [href]="d.urlArchivo" target="_blank" class="btn-action">Ver archivo</a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="cargado" *ngFor="let d of otros">
+        <span class="check neutro">📎</span>
+        <div class="cargado-info">
+          <strong>{{ d.nombreArchivo }}</strong>
+          <small>Cargado el {{ d.fechaCarga | date: 'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+        <a class="btn btn-ghost btn-sm" [href]="urlDe(d)" target="_blank" rel="noopener">Ver archivo</a>
       </div>
 
-      <!-- Estado vacío cuando no hay documentos -->
-      <div class="empty-state" *ngIf="documentos.length === 0">
-        <p>Aún no hay documentos cargados para esta solicitud o no ha realizado la búsqueda.</p>
+      <div class="zona"
+           [class.activa]="arrastrando[OTRO]"
+           [class.con-archivo]="archivos[OTRO]"
+           (dragover)="alArrastrarSobre(OTRO, $event)"
+           (dragleave)="alSalirDeZona(OTRO)"
+           (drop)="alSoltar(OTRO, $event)">
+
+        <ng-container *ngIf="!archivos[OTRO]">
+          <div class="zona-icono">⬆</div>
+          <p><strong>Arrastra otro documento aquí</strong></p>
+          <p class="muted small">o</p>
+          <label class="btn btn-ghost btn-sm">
+            Elegir archivo
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="alElegirArchivo(OTRO, $event)" hidden />
+          </label>
+        </ng-container>
+
+        <ng-container *ngIf="archivos[OTRO] as f">
+          <div class="elegido">
+            <span class="doc-icono">📄</span>
+            <div>
+              <strong>{{ f.name }}</strong>
+              <small class="muted">{{ formatoTamano(f.size) }}</small>
+            </div>
+          </div>
+          <div class="botones">
+            <button class="btn btn-primary btn-sm" (click)="subir(OTRO)" [disabled]="subiendo[OTRO]">
+              {{ subiendo[OTRO] ? 'Subiendo...' : 'Subir documento' }}
+            </button>
+            <button class="btn btn-ghost btn-sm" (click)="quitar(OTRO)" [disabled]="subiendo[OTRO]">Quitar</button>
+          </div>
+        </ng-container>
       </div>
-    </div>
-  </div>
+      <p class="error-linea" *ngIf="errores[OTRO]">{{ errores[OTRO] }}</p>
+    </section>
+
+  </ng-container>
 </div>

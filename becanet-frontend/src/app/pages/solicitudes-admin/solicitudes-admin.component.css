@@ -1,0 +1,89 @@
+.dos-columnas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+.dos-columnas .card { margin-bottom: 0; }
+.dos-columnas { margin-bottom: 1.5rem; }
+
+.pendientes { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.confirmar { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; font-size: 0.86rem; color: var(--text-main); }
+
+/* ---------- Carga por evaluador ---------- */
+.carga { display: grid; grid-template-columns: 1.3fr 1.7fr auto; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
+.carga-info strong { display: block; font-size: 0.88rem; color: var(--text-main); }
+.carga-info small { color: var(--text-muted); font-size: 0.74rem; }
+.carga-barra { height: 8px; background: var(--bg-input); border-radius: 999px; overflow: hidden; }
+.carga-barra span { display: block; height: 100%; background: linear-gradient(90deg, #2563eb, #7c3aed); border-radius: 999px; transition: width 0.4s ease; }
+.carga-n { font-weight: 800; color: var(--text-main); min-width: 1.4rem; text-align: right; }
+
+/* ---------- Lista ---------- */
+.buscar { max-width: 360px; }
+.chips { margin-bottom: 1.1rem; }
+.vacio { margin-top: 0.5rem; }
+
+.encabezado-tabla,
+.fila-principal {
+  display: grid;
+  grid-template-columns: 1.4fr 1.4fr 1.1fr 1.5fr 0.6fr 0.8fr;
+  gap: 0.8rem;
+  align-items: center;
+}
+.encabezado-tabla {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.fila {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 0.8rem 0.9rem;
+  margin-bottom: 0.7rem;
+  transition: border-color 0.2s ease;
+}
+.fila:hover, .fila.abierta { border-color: var(--color-primary); }
+
+.celda { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; font-size: 0.88rem; color: var(--text-main); }
+.celda small { color: var(--text-muted); font-size: 0.74rem; overflow: hidden; text-overflow: ellipsis; }
+.acciones-celda { align-items: flex-end; }
+.input.compacto { padding: 0.4rem 0.5rem; font-size: 0.82rem; }
+
+.decision {
+  display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+  margin-top: 0.8rem; padding-top: 0.8rem;
+  border-top: 1px dashed var(--border-color);
+}
+.rechazo { width: 100%; }
+.rechazo .botones { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+
+.detalle {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 0.8rem; padding-top: 0.8rem;
+  border-top: 1px dashed var(--border-color);
+}
+.detalle p { margin: 0.2rem 0 0 0; font-size: 0.88rem; color: var(--text-main); line-height: 1.45; }
+.docs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.3rem; }
+.doc {
+  font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 999px;
+  padding: 0.25rem 0.7rem; color: var(--text-main); text-decoration: none;
+}
+.doc:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+@media (max-width: 980px) {
+  .dos-columnas { grid-template-columns: 1fr; }
+  .encabezado-tabla { display: none; }
+  .fila-principal { grid-template-columns: 1fr 1fr; }
+  .celda::before {
+    content: attr(data-etiqueta);
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    color: var(--text-muted); letter-spacing: 0.04em;
+  }
+  .acciones-celda { align-items: flex-start; }
+}

@@ -5,7 +5,7 @@ using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 namespace BecaNet.Api.Tests
 {
-    // 1. EvaluadorBecaTests
+    // 1. EvaluadorBecaTests PR
     [TestFixture]
     public class EvaluadorBecaTests
     {
@@ -30,7 +30,7 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 2. CalculadorCoberturaTests
+    // 2. Calculador CoberturaTests
     [TestFixture]
     public class CalculadorCoberturaTests
     {
@@ -55,7 +55,7 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 3. ValidadorDocumentoTests
+    // 3. Validado DocumentoTests
     [TestFixture]
     public class ValidadorDocumentoTests
     {
@@ -80,7 +80,7 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 4. AutenticadorTests
+    // 4. Autenticador Tests
     [TestFixture]
     public class AutenticadorTests
     {
@@ -105,11 +105,11 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 5. EvaluadorGlobalTests
+    // 5. Evaluador Global Tests          -VALIDACIO
     [TestFixture]
     public class EvaluadorGlobalTests
     {
-        private EvaluadorGlobal evaluador = new EvaluadorGlobal();
+        private EvaluadorGlobal evaluador = new EvaluadorGlobal();               // ES validar importante *****
 
         [Test]
         public void PuntuacionPerfecta_DevuelveCien()
@@ -130,7 +130,7 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 6. ValidadorComiteTests
+    // 6. Validador Comite Tests
     [TestFixture]
     public class ValidadorComiteTests
     {
@@ -155,7 +155,7 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 7. ControlAccesosTests
+    // 7. Control AccesosTests
     [TestFixture]
     public class ControlAccesosTests
     {
@@ -179,8 +179,8 @@ namespace BecaNet.Api.Tests
             Assert.Throws<ArgumentException>(() => control.ProcesarIntento(-1, false));
         }
     }
-
-    // 8. ValidadorProgramaTests
+ 
+    // 8. ValidadorP rogramaTests
     [TestFixture]
     public class ValidadorProgramaTests
     {
@@ -189,23 +189,24 @@ namespace BecaNet.Api.Tests
         [Test]
         public void PregradoEdadCorrecta_DevuelveTrue()
         {
-            Assert.AreEqual(true, validador.EsEdadValida(18, "PREGRADO"));
+        Assert.AreEqual(true, validador.EsEdadValida(18, "PREGRADO"));
         }
 
         [Test]
         public void PregradoEdadExcedida_DevuelveFalse()
         {
-            Assert.AreEqual(false, validador.EsEdadValida(26, "PREGRADO"));
+        Assert.AreEqual(false, validador.EsEdadValida(26, "PREGRADO"));
         }
+
 
         [Test]
         public void PostgradoEdadValida_DevuelveTrue()
         {
-            Assert.AreEqual(true, validador.EsEdadValida(45, "POSTGRADO"));
+        Assert.AreEqual(true, validador.EsEdadValida(45, "POSTGRADO"));
         }
     }
 
-    // 9. FlujoSolicitudTests
+    // 9. Flujo SolicitudTests
     [TestFixture]
     public class FlujoSolicitudTests
     {
@@ -220,7 +221,7 @@ namespace BecaNet.Api.Tests
         [Test]
         public void BorradorAAprobada_DevuelveFalse()
         {
-            Assert.AreEqual(false, flujo.EsTransicionValida("BORRADOR", "APROBADA"));
+         Assert.AreEqual(false, flujo.EsTransicionValida("BORRADOR", "APROBADA"));
         }
 
         [Test]
@@ -230,7 +231,8 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 10. GeneradorExpedienteTests
+    // 10. Generado rExpediente Tests
+
     [TestFixture]
     public class GeneradorExpedienteTests
     {
@@ -239,7 +241,7 @@ namespace BecaNet.Api.Tests
         [Test]
         public void CodigoCorrecto_DevuelveTrue()
         {
-            Assert.AreEqual(true, generador.ValidarCodigo("BEC-2026-00125"));
+        Assert.AreEqual(true, generador.ValidarCodigo("BEC-2026-00125"));    // Es importante 
         }
 
         [Test]
@@ -255,3 +257,8 @@ namespace BecaNet.Api.Tests
         }
     }
 }
+
+
+// Apuntes paginas 21 validaciones 
+
+// agregar al grupo de notas

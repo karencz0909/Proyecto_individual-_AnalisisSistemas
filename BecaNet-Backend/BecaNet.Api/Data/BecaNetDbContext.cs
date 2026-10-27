@@ -62,6 +62,13 @@ public class BecaNetDbContext : DbContext
 
             // Un estudiante solo puede tener UNA solicitud por convocatoria (US-007)
             cfg.HasIndex(s => new { s.IdEstudiante, s.IdConvocatoria }).IsUnique();
+
+            // Evaluador al que se le asignó la revisión de la solicitud
+            cfg.Property(s => s.EstadoRevision).HasMaxLength(20);
+            cfg.HasOne(s => s.EvaluadorAsignado)
+               .WithMany()
+               .HasForeignKey(s => s.IdEvaluadorAsignado)
+               .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ---- Documento (composición: se borra en cascada con la Solicitud) ----

@@ -7,7 +7,7 @@ namespace BecaNet.Api.Services;
 
 public interface IDocumentoService
 {
-    Task<DocumentoDTO> CargarDocumentoAsync(int idSolicitud, IFormFile archivo);
+    Task<DocumentoDTO> CargarDocumentoAsync(int idSolicitud, IFormFile archivo, string? tipoDocumento = null);
     Task<List<DocumentoDTO>> ObtenerPorSolicitudAsync(int idSolicitud);
 }
 
@@ -24,7 +24,7 @@ public class DocumentoService : IDocumentoService
         _env = env;
     }
 
-    public async Task<DocumentoDTO> CargarDocumentoAsync(int idSolicitud, IFormFile archivo)
+    public async Task<DocumentoDTO> CargarDocumentoAsync(int idSolicitud, IFormFile archivo, string? tipoDocumento = null)
     {
         var solicitud = await _context.Solicitudes.FindAsync(idSolicitud)
             ?? throw new InvalidOperationException("La solicitud no existe.");
@@ -58,6 +58,9 @@ public class DocumentoService : IDocumentoService
             IdSolicitud = idSolicitud,
             NombreArchivo = archivo.FileName,
             TipoArchivo = tipoArchivo,
+            TipoDocumento = tipoDocumento == TiposDocumento.CertificacionEstudios
+                ? TiposDocumento.CertificacionEstudios
+                : TiposDocumento.Otro,
             UrlArchivo = $"/uploads/{idSolicitud}/{nombreUnico}",
             FechaCarga = DateTime.Now
         };
@@ -69,6 +72,7 @@ public class DocumentoService : IDocumentoService
             Id = creado.Id,
             NombreArchivo = creado.NombreArchivo,
             TipoArchivo = creado.TipoArchivo,
+            TipoDocumento = creado.TipoDocumento,
             UrlArchivo = creado.UrlArchivo,
             FechaCarga = creado.FechaCarga,
             IdSolicitud = creado.IdSolicitud
@@ -83,6 +87,7 @@ public class DocumentoService : IDocumentoService
             Id = d.Id,
             NombreArchivo = d.NombreArchivo,
             TipoArchivo = d.TipoArchivo,
+            TipoDocumento = d.TipoDocumento,
             UrlArchivo = d.UrlArchivo,
             FechaCarga = d.FechaCarga,
             IdSolicitud = d.IdSolicitud

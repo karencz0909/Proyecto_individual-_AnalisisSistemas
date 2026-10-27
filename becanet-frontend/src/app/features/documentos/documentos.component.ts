@@ -1,96 +1,202 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DocumentoService } from '../../services/documento.service';
+import { SolicitudService } from '../../services/solicitud.service';
 import { Documento } from '../../models/documento.model';
+import { Solicitud } from '../../models/solicitud.model';
+
+type TipoRequisito = 'CERTIFICACION_ESTUDIOS' | 'OTRO';
+
+interface Aviso {
+  tipo: 'success' | 'error' | 'info';
+  texto: string;
+}
 
 @Component({
   selector: 'app-documentos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './documentos.component.html',
-  styleUrl: './documentos.component.css'
+  styleUrls: ['../../shared/estilos-paginas.css', './documentos.component.css']
 })
-export class DocumentosComponent {
-  idSolicitud: number | null = null;
-  archivoSeleccionado: File | null = null;
+export class DocumentosComponent implements OnInit {
+  readonly CERT: TipoRequisito = 'CERTIFICACION_ESTUDIOS';
+  readonly OTRO: TipoRequisito = 'OTRO';
+
+  private readonly extensionesPermitidas = ['pdf', 'jpg', 'jpeg', 'png'];
+  private readonly tamanoMaximoBytes = 5 * 1024 * 1024;
+
+  solicitudes: Solicitud[] = [];
+  idSeleccionada: number | null = null;
   documentos: Documento[] = [];
 
-  cargando = false;
-  mensajeError = '';
-  mensajeExito = '';
+  // Estado por cada espacio de carga (certificación / otros)
+  archivos: Record<string, File | null> = { CERTIFICACION_ESTUDIOS: null, OTRO: null };
+  arrastrando: Record<string, boolean> = { CERTIFICACION_ESTUDIOS: false, OTRO: false };
+  subiendo: Record<string, boolean> = { CERTIFICACION_ESTUDIOS: false, OTRO: false };
+  errores: Record<string, string> = { CERTIFICACION_ESTUDIOS: '', OTRO: '' };
 
-  // Debe coincidir con las reglas de negocio de US-008 (también validadas en el backend)
-  private extensionesPermitidas = ['pdf', 'jpg', 'jpeg', 'png'];
-  private tamanoMaximoBytes = 5 * 1024 * 1024;
+  cargando = true;
+  aviso: Aviso | null = null;
 
-  constructor(private documentoService: DocumentoService) {}
+  constructor(
+    private documentoService: DocumentoService,
+    private solicitudService: SolicitudService,
+    private route: ActivatedRoute
+  ) {}
 
-  onArchivoSeleccionado(evento: Event): void {
-    const input = evento.target as HTMLInputElement;
-    this.archivoSeleccionado = input.files?.[0] ?? null;
+  ngOnInit(): void {
+    this.cargarSolicitudes(true);
   }
 
-  cargarDocumento(): void {
-    this.limpiarMensajes();
-
-    if (!this.idSolicitud) {
-      this.mensajeError = 'Indica el ID de la solicitud a la que pertenece el documento.';
-      return;
-    }
-    if (!this.archivoSeleccionado) {
-      this.mensajeError = 'Selecciona un archivo antes de subirlo.';
-      return;
-    }
-
-    // Validación en el cliente (UX rápida); el backend vuelve a validar por seguridad
-    const extension = this.archivoSeleccionado.name.split('.').pop()?.toLowerCase() || '';
-    if (!this.extensionesPermitidas.includes(extension)) {
-      this.mensajeError = 'Formato no permitido. Solo se aceptan PDF, JPG y PNG.';
-      return;
-    }
-    if (this.archivoSeleccionado.size > this.tamanoMaximoBytes) {
-      this.mensajeError = 'El archivo supera el tamaño máximo permitido (5 MB).';
-      return;
-    }
-
-    this.cargando = true;
-    this.documentoService.cargar(this.idSolicitud, this.archivoSeleccionado).subscribe({
-      next: () => {
-        this.mensajeExito = 'Documento cargado correctamente.';
-        this.archivoSeleccionado = null;
+  // ------------------------------------------------------------------
+  // Solicitudes y documentos
+  // ------------------------------------------------------------------
+  private cargarSolicitudes(primeraVez: boolean): void {
+    this.solicitudService.obtenerMias().subscribe({
+      next: (lista) => {
+        // Las canceladas ya no necesitan documentos
+        this.solicitudes = lista.filter(s => s.estado !== 'CANCELADA');
         this.cargando = false;
-        this.consultarDocumentos();
+
+        if (primeraVez) {
+          const deUrl = Number(this.route.snapshot.queryParamMap.get('solicitud'));
+          const existeEnUrl = this.solicitudes.some(s => s.id === deUrl);
+          this.idSeleccionada = existeEnUrl ? deUrl : (this.solicitudes[0]?.id ?? null);
+          this.cargarDocumentos();
+        }
       },
       error: (err) => {
-        this.mensajeError = err?.error?.mensaje || 'No se pudo cargar el documento.';
         this.cargando = false;
+        this.aviso = { tipo: 'error', texto: this.extraerError(err) };
       }
     });
   }
 
-  consultarDocumentos(): void {
-    this.limpiarMensajes();
-    if (!this.idSolicitud) {
-      this.mensajeError = 'Indica el ID de la solicitud para consultar sus documentos.';
+  alCambiarSolicitud(): void {
+    this.aviso = null;
+    this.archivos = { CERTIFICACION_ESTUDIOS: null, OTRO: null };
+    this.errores = { CERTIFICACION_ESTUDIOS: '', OTRO: '' };
+    this.cargarDocumentos();
+  }
+
+  private cargarDocumentos(): void {
+    if (this.idSeleccionada === null) { this.documentos = []; return; }
+    this.documentoService.obtenerPorSolicitud(this.idSeleccionada).subscribe({
+      next: (docs) => (this.documentos = docs),
+      error: (err) => (this.aviso = { tipo: 'error', texto: this.extraerError(err) })
+    });
+  }
+
+  get solicitudActual(): Solicitud | undefined {
+    return this.solicitudes.find(s => s.id === this.idSeleccionada);
+  }
+
+  get certificaciones(): Documento[] {
+    return this.documentos.filter(d => d.tipoDocumento === this.CERT);
+  }
+
+  get otros(): Documento[] {
+    return this.documentos.filter(d => d.tipoDocumento !== this.CERT);
+  }
+
+  get tieneCertificacion(): boolean {
+    return this.certificaciones.length > 0;
+  }
+
+  urlDe(d: Documento): string {
+    return this.documentoService.urlCompleta(d.urlArchivo);
+  }
+
+  // ------------------------------------------------------------------
+  // Selección del archivo (botón o arrastrar y soltar)
+  // ------------------------------------------------------------------
+  alElegirArchivo(tipo: TipoRequisito, evento: Event): void {
+    const input = evento.target as HTMLInputElement;
+    this.preparar(tipo, input.files?.[0] ?? null);
+    input.value = ''; // permite volver a elegir el mismo archivo
+  }
+
+  alArrastrarSobre(tipo: TipoRequisito, evento: DragEvent): void {
+    evento.preventDefault();
+    this.arrastrando[tipo] = true;
+  }
+
+  alSalirDeZona(tipo: TipoRequisito): void {
+    this.arrastrando[tipo] = false;
+  }
+
+  alSoltar(tipo: TipoRequisito, evento: DragEvent): void {
+    evento.preventDefault();
+    this.arrastrando[tipo] = false;
+    this.preparar(tipo, evento.dataTransfer?.files?.[0] ?? null);
+  }
+
+  private preparar(tipo: TipoRequisito, archivo: File | null): void {
+    this.errores[tipo] = '';
+    this.aviso = null;
+    if (!archivo) return;
+
+    // Prevención de errores: se valida ANTES de subir
+    const extension = archivo.name.split('.').pop()?.toLowerCase() ?? '';
+    if (!this.extensionesPermitidas.includes(extension)) {
+      this.errores[tipo] = 'Formato no permitido. Solo se aceptan PDF, JPG o PNG.';
+      this.archivos[tipo] = null;
       return;
     }
+    if (archivo.size > this.tamanoMaximoBytes) {
+      this.errores[tipo] = `El archivo pesa ${this.formatoTamano(archivo.size)} y el máximo es 5 MB.`;
+      this.archivos[tipo] = null;
+      return;
+    }
+    this.archivos[tipo] = archivo;
+  }
 
-    this.cargando = true;
-    this.documentoService.obtenerPorSolicitud(this.idSolicitud).subscribe({
-      next: (data) => {
-        this.documentos = data;
-        this.cargando = false;
+  quitar(tipo: TipoRequisito): void {
+    this.archivos[tipo] = null;
+    this.errores[tipo] = '';
+  }
+
+  subir(tipo: TipoRequisito): void {
+    const archivo = this.archivos[tipo];
+    if (!archivo || this.idSeleccionada === null) return;
+
+    this.subiendo[tipo] = true;
+    this.aviso = null;
+
+    this.documentoService.cargar(this.idSeleccionada, archivo, tipo).subscribe({
+      next: () => {
+        this.subiendo[tipo] = false;
+        this.archivos[tipo] = null;
+        this.aviso = {
+          tipo: 'success',
+          texto: tipo === this.CERT
+            ? '¡Certificación de estudios recibida! Tu solicitud ya puede ser revisada.'
+            : 'Documento cargado correctamente.'
+        };
+        this.cargarDocumentos();
+        this.cargarSolicitudes(false);
       },
-      error: () => {
-        this.mensajeError = 'No se pudieron cargar los documentos.';
-        this.cargando = false;
+      error: (err) => {
+        this.subiendo[tipo] = false;
+        // El archivo se conserva para poder reintentar sin volver a elegirlo
+        this.errores[tipo] = this.extraerError(err);
       }
     });
   }
 
-  private limpiarMensajes(): void {
-    this.mensajeError = '';
-    this.mensajeExito = '';
+  formatoTamano(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  private extraerError(err: any): string {
+    if (err?.status === 0) return 'No se pudo conectar con el servidor. Inténtalo de nuevo.';
+    if (err?.status === 403) return 'No tienes permiso para modificar esta solicitud.';
+    if (err?.error?.mensaje) return err.error.mensaje;
+    return 'Ocurrió un error inesperado. Inténtalo de nuevo.';
   }
 }

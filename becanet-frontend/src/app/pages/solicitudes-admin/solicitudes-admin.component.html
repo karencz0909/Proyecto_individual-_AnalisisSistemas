@@ -1,1 +1,209 @@
-<p>solicitudes-admin works!</p>
+<div class="page">
+
+  <header class="page-hero">
+    <h1>Solicitudes de beca</h1>
+    <p>Reparte el trabajo entre los evaluadores, da seguimiento a cada solicitud y toma la decisión final.</p>
+  </header>
+
+  <div class="alert" *ngIf="aviso" [ngClass]="'alert-' + aviso.tipo" role="status">
+    <span>{{ aviso.texto }}</span>
+    <button class="alert-close" (click)="aviso = null" aria-label="Cerrar aviso">×</button>
+  </div>
+
+  <p class="muted" *ngIf="cargando">Cargando solicitudes...</p>
+
+  <ng-container *ngIf="!cargando">
+
+    <!-- ===================== REPARTO Y CARGA ===================== -->
+    <div class="dos-columnas">
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2 class="card-title">Repartir solicitudes</h2>
+            <p class="card-sub">Cada solicitud nueva va al evaluador con menos carga. Con 10 solicitudes y 5 evaluadores, a cada uno le tocan 2.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="comite">Repartir entre</label>
+          <select id="comite" class="input" [(ngModel)]="comiteElegido" [disabled]="confirmandoDistribuir || distribuyendo">
+            <option [ngValue]="null">Todos los evaluadores</option>
+            <option *ngFor="let c of comites" [ngValue]="c.id">Comité: {{ c.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="pendientes">
+          <span class="badge" [ngClass]="pendientesDeReparto > 0 ? 'badge-yellow' : 'badge-gray'">
+            {{ pendientesDeReparto }} pendiente(s) de repartir
+          </span>
+          <span class="muted small" *ngIf="sinCertificacion > 0">
+            {{ sinCertificacion }} más esperan la certificación del estudiante
+          </span>
+        </div>
+
+        <button *ngIf="!confirmandoDistribuir"
+                class="btn btn-primary"
+                (click)="pedirDistribuir()"
+                [disabled]="pendientesDeReparto === 0 || evaluadores.length === 0">
+          Distribuir automáticamente
+        </button>
+
+        <div class="confirmar" *ngIf="confirmandoDistribuir">
+          <span>Se asignarán <strong>{{ pendientesDeReparto }}</strong> solicitud(es). ¿Continuar?</span>
+          <button class="btn btn-primary btn-sm" (click)="confirmarDistribuir()" [disabled]="distribuyendo">
+            {{ distribuyendo ? 'Repartiendo...' : 'Sí, repartir' }}
+          </button>
+          <button class="btn btn-ghost btn-sm" (click)="cancelarDistribuir()" [disabled]="distribuyendo">Cancelar</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2 class="card-title">Carga por evaluador</h2>
+            <p class="card-sub">Solicitudes activas asignadas a cada uno.</p>
+          </div>
+        </div>
+        <p class="muted small" *ngIf="evaluadores.length === 0">No hay evaluadores registrados.</p>
+        <div class="carga" *ngFor="let e of evaluadores">
+          <div class="carga-info">
+            <strong>{{ e.nombre }}</strong>
+            <small>{{ e.correo }}</small>
+          </div>
+          <div class="carga-barra"><span [style.width.%]="(e.asignadas / cargaMaxima) * 100"></span></div>
+          <span class="carga-n">{{ e.asignadas }}</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================== LISTA DE SOLICITUDES ===================== -->
+    <section class="card">
+      <div class="card-head">
+        <h2 class="card-title">Todas las solicitudes</h2>
+        <input class="input buscar" type="search" [(ngModel)]="busqueda"
+               placeholder="Buscar por estudiante, correo, convocatoria o evaluador..." />
+      </div>
+
+      <div class="chips">
+        <button class="chip" *ngFor="let f of filtros"
+                [class.activo]="filtro === f.id"
+                (click)="seleccionarFiltro(f.id)">
+          {{ f.texto }} <span class="n">{{ conteo(f.id) }}</span>
+        </button>
+      </div>
+
+      <div class="empty vacio" *ngIf="filtradas.length === 0">
+        <strong>No hay solicitudes para mostrar</strong>
+        Cambia el filtro o la búsqueda.
+      </div>
+
+      <div class="encabezado-tabla" *ngIf="filtradas.length > 0">
+        <span>Estudiante</span><span>Convocatoria</span><span>Estado</span><span>Evaluador</span><span>Puntaje</span><span></span>
+      </div>
+
+      <article class="fila" *ngFor="let s of filtradas" [class.abierta]="expandida === s.idSolicitud">
+        <div class="fila-principal">
+          <div class="celda" data-etiqueta="Estudiante">
+            <strong>{{ s.nombreEstudiante }}</strong>
+            <small>{{ s.correoEstudiante }}</small>
+          </div>
+
+          <div class="celda" data-etiqueta="Convocatoria">
+            <span>{{ s.tituloConvocatoria }}</span>
+            <small>#{{ s.idSolicitud }} · {{ s.fechaCreacion | date: 'dd/MM/yyyy' }}</small>
+          </div>
+
+          <div class="celda" data-etiqueta="Estado">
+            <span class="badge" [ngClass]="etiqueta(s).clase">{{ etiqueta(s).texto }}</span>
+          </div>
+
+          <div class="celda" data-etiqueta="Evaluador">
+            <ng-container *ngIf="puedeReasignar(s); else evaluadorFijo">
+              <select class="input compacto"
+                      [disabled]="procesando === s.idSolicitud"
+                      [ngModel]="s.idEvaluadorAsignado ?? ''"
+                      (ngModelChange)="cambiarEvaluador(s, $event)">
+                <option value="">Sin asignar</option>
+                <option *ngFor="let e of evaluadores" [value]="e.id">{{ e.nombre }} ({{ e.asignadas }})</option>
+              </select>
+              <small *ngIf="s.correoEvaluador">{{ s.correoEvaluador }}</small>
+            </ng-container>
+            <ng-template #evaluadorFijo>
+              <span *ngIf="s.nombreEvaluador">{{ s.nombreEvaluador }}</span>
+              <small *ngIf="s.correoEvaluador">{{ s.correoEvaluador }}</small>
+              <span class="muted small" *ngIf="!s.nombreEvaluador">—</span>
+            </ng-template>
+          </div>
+
+          <div class="celda" data-etiqueta="Puntaje">
+            <strong *ngIf="s.puntaje != null">{{ s.puntaje }}</strong>
+            <span class="muted" *ngIf="s.puntaje == null">—</span>
+          </div>
+
+          <div class="celda acciones-celda">
+            <button class="btn btn-ghost btn-sm" (click)="alternarDetalle(s.idSolicitud)">
+              {{ expandida === s.idSolicitud ? 'Ocultar' : 'Detalle' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Decisión final: solo cuando el evaluador ya calificó -->
+        <div class="decision" *ngIf="etapa(s) === 'EVALUADA'">
+          <span class="muted small">El evaluador terminó. Falta tu decisión:</span>
+
+          <ng-container *ngIf="confirmandoAprobar !== s.idSolicitud && rechazando !== s.idSolicitud">
+            <button class="btn btn-success btn-sm" (click)="pedirAprobar(s.idSolicitud)">Aprobar</button>
+            <button class="btn btn-danger btn-sm" (click)="pedirRechazo(s.idSolicitud)">Rechazar</button>
+          </ng-container>
+
+          <div class="confirmar" *ngIf="confirmandoAprobar === s.idSolicitud">
+            <span>¿Aprobar la beca de <strong>{{ s.nombreEstudiante }}</strong>?</span>
+            <button class="btn btn-success btn-sm" (click)="confirmarAprobar(s)" [disabled]="procesando === s.idSolicitud">
+              {{ procesando === s.idSolicitud ? 'Guardando...' : 'Sí, aprobar' }}
+            </button>
+            <button class="btn btn-ghost btn-sm" (click)="cancelarAccion()">Cancelar</button>
+          </div>
+
+          <div class="rechazo" *ngIf="rechazando === s.idSolicitud">
+            <textarea class="input" rows="2" [(ngModel)]="motivoRechazo"
+                      placeholder="Motivo del rechazo (el estudiante lo verá)..."></textarea>
+            <div class="botones">
+              <button class="btn btn-danger-solid btn-sm" (click)="confirmarRechazo(s)"
+                      [disabled]="motivoRechazo.trim().length < 5 || procesando === s.idSolicitud">
+                {{ procesando === s.idSolicitud ? 'Guardando...' : 'Confirmar rechazo' }}
+              </button>
+              <button class="btn btn-ghost btn-sm" (click)="cancelarAccion()">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalle desplegable -->
+        <div class="detalle" *ngIf="expandida === s.idSolicitud">
+          <div>
+            <span class="muted small">Motivo del estudiante</span>
+            <p>{{ s.motivo || 'No escribió un motivo.' }}</p>
+          </div>
+          <div *ngIf="s.observacionesEvaluacion">
+            <span class="muted small">Observaciones del evaluador</span>
+            <p>{{ s.observacionesEvaluacion }}</p>
+          </div>
+          <div *ngIf="s.motivoResolucion">
+            <span class="muted small">Motivo de la decisión</span>
+            <p>{{ s.motivoResolucion }}</p>
+          </div>
+          <div>
+            <span class="muted small">Documentos</span>
+            <div class="docs">
+              <a *ngFor="let d of s.documentos" class="doc" [href]="urlDe(d)" target="_blank" rel="noopener">
+                📄 {{ d.tipoDocumento === 'CERTIFICACION_ESTUDIOS' ? 'Certificación de estudios' : d.nombreArchivo }}
+              </a>
+              <span class="muted small" *ngIf="s.documentos.length === 0">Sin documentos</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+  </ng-container>
+</div>

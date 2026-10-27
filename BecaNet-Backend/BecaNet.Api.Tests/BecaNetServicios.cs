@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace BecaNet.Api.Tests
 {
-    // 1. Validar promedio del solicitante
+    
     public class EvaluadorBeca
     {
         public bool EsElegible(decimal promedio)
@@ -16,7 +16,6 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 2. Calcular la cobertura de la beca
     public class CalculadorCobertura
     {
         public decimal CalcularPorcentaje(decimal ingreso, int vulnerabilidad)
@@ -29,7 +28,6 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 3. Validar formato y tamaño de documentos
     public class ValidadorDocumento
     {
         public bool EsDocumentoValido(string extension, decimal tamanoMB)
@@ -40,7 +38,6 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 4. Validar credenciales de usuario
     public class Autenticador
     {
         public bool ValidarCredenciales(string correo, string contrasena)
@@ -53,7 +50,6 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 5. Calcular puntuación global del postulante
     public class EvaluadorGlobal
     {
         public decimal CalcularPuntuacion(decimal academica, decimal socioeconomica, decimal entrevista)
@@ -66,7 +62,6 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 6. Validar integrantes de un comité evaluador
     public class ValidadorComite
     {
         public bool EsComiteValido(List<int> idsEvaluadores)
@@ -78,7 +73,6 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 7. Control de intentos fallidos de inicio de sesión
     public class ControlAccesos
     {
         public string ProcesarIntento(int intentosPrevios, bool esExito)
@@ -90,7 +84,6 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 8. Validar edad del postulante según el programa
     public class ValidadorPrograma
     {
         public bool EsEdadValida(int edad, string programa)
@@ -106,7 +99,6 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 9. Transición de estados de una solicitud
     public class FlujoSolicitud
     {
         public bool EsTransicionValida(string estadoActual, string nuevoEstado)
@@ -121,14 +113,13 @@ namespace BecaNet.Api.Tests
         }
     }
 
-    // 10. Validar formato de código correlativo de expediente
     public class GeneradorExpediente
     {
         public bool ValidarCodigo(string codigo)
         {
-            if (string.IsNullOrWhiteSpace(codigo)) return false;
-            Regex regex = new Regex(@"^BEC-\d{4}-\d{5}$");
-            return regex.IsMatch(codigo);
+        if (string.IsNullOrWhiteSpace(codigo)) return false;
+        Regex regex = new Regex(@"^BEC-\d{4}-\d{5}$");
+        return regex.IsMatch(codigo);
         }
     }
 }

@@ -48,6 +48,7 @@ public class SolicitudService : ISolicitudService
             IdEstudiante = dto.IdEstudiante,
             IdConvocatoria = dto.IdConvocatoria,
             Observaciones = dto.Observaciones,
+            Motivo = dto.Motivo,
             Estado = EstadoSolicitud.EnProceso,
             FechaCreacion = DateTime.Now
         };
@@ -120,6 +121,8 @@ public class SolicitudService : ISolicitudService
             FechaCreacion = s.FechaCreacion,
             Estado = s.Estado,
             Observaciones = s.Observaciones,
+            EstadoRevision = s.EstadoRevision,
+            Motivo = s.Motivo,
             MotivoResolucion = s.MotivoResolucion,
             FechaResolucion = s.FechaResolucion,
             IdEstudiante = s.IdEstudiante,
@@ -127,7 +130,8 @@ public class SolicitudService : ISolicitudService
             IdConvocatoria = s.IdConvocatoria,
             TituloConvocatoria = tituloConvocatoria,
             IdComite = s.IdComite,
-            CantidadDocumentos = s.Documentos?.Count ?? 0
+            CantidadDocumentos = s.Documentos?.Count ?? 0,
+            TieneCertificacionEstudios = s.Documentos?.Any(d => d.TipoDocumento == TiposDocumento.CertificacionEstudios) ?? false
         };
     }
 }

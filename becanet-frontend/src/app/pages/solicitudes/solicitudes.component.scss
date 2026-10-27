@@ -1,97 +1,131 @@
-.page-container {
-  max-width: 1200px;
-  margin: 0 auto 40px auto;
-  padding: 0 24px;
+.solicitud {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background-color: var(--bg-card);
+}
+.solicitud.cancelada { opacity: 0.65; }
+.solicitud-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.solicitud-head h3 { margin: 0 0 0.15rem 0; color: var(--text-main); font-size: 1.05rem; }
+
+/* ---------- Línea de avance ---------- */
+.tracker {
+  list-style: none;
+  margin: 0 0 1.1rem 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+.tracker li {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-}
-
-.flat-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  box-shadow: var(--shadow-flat);
-  transition: background-color var(--transition-speed), border-color var(--transition-speed);
-}
-
-.card-header {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-
-  h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-main);
-  }
-
-  .badge-draft {
-    font-size: 0.75rem;
-    padding: 4px 10px;
-    border-radius: 12px;
-    background-color: var(--color-warning-light);
-    color: var(--color-warning);
-    font-weight: 500;
-
-    &.saved {
-      background-color: var(--color-success-light);
-      color: var(--color-success);
-    }
-  }
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.card-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.helper-text {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 12px;
-}
-
-.feedback-alert {
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 500;
-
-  &.alert-success {
-    background-color: var(--color-success-light);
-    color: var(--color-success);
-    border: 1px solid var(--color-success);
-  }
-
-  &.alert-danger {
-    background-color: var(--color-danger-light);
-    color: var(--color-danger);
-    border: 1px solid var(--color-danger);
-  }
-
-  &.alert-info {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-    border: 1px solid var(--color-primary);
-  }
-}
-
-.empty-state {
-  margin-top: 24px;
   text-align: center;
-  padding: 32px;
-  border: 1px dashed var(--border-color);
-  border-radius: var(--radius-sm);
+  gap: 0.2rem;
+  position: relative;
   color: var(--text-muted);
-  font-size: 0.9rem;
+}
+.tracker li strong { font-size: 0.82rem; color: var(--text-main); }
+.tracker li small { font-size: 0.72rem; line-height: 1.25; }
+.tracker .punto {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem;
+  background: var(--bg-input);
+  border: 2px solid var(--border-color);
+  color: var(--text-muted);
+  z-index: 1;
+}
+.tracker li:not(:last-child)::after {
+  content: '';
+  position: absolute; top: 14px; left: 50%;
+  width: 100%; height: 2px;
+  background: var(--border-color);
+}
+.tracker .paso-hecho .punto   { background: #22a559; border-color: #22a559; color: #fff; }
+.tracker .paso-hecho:not(:last-child)::after { background: #22a559; }
+.tracker .paso-actual .punto  { border-color: var(--color-primary); color: var(--color-primary); animation: latido 1.6s ease-in-out infinite; }
+.tracker .paso-error .punto   { background: #ef4444; border-color: #ef4444; color: #fff; }
+@keyframes latido {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.45); }
+  50%      { box-shadow: 0 0 0 7px rgba(37, 99, 235, 0); }
+}
+
+/* ---------- Documentos requeridos ---------- */
+.docs {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.9rem;
+}
+.doc-item { display: flex; align-items: center; gap: 0.7rem; }
+.doc-item strong { display: block; font-size: 0.88rem; color: var(--text-main); }
+.doc-item small { color: var(--text-muted); font-size: 0.78rem; }
+.doc-icono {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.8rem;
+  background: rgba(217, 154, 11, 0.2); color: #d99a0b;
+}
+.doc-item.ok .doc-icono { background: rgba(34, 165, 89, 0.2); color: #22a559; }
+
+.motivo { margin-bottom: 0.9rem; }
+.motivo p { margin: 0.2rem 0 0 0; color: var(--text-main); font-size: 0.9rem; line-height: 1.45; }
+
+.acciones { display: flex; }
+.confirmar { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-main); }
+
+/* ---------- Formulario nueva solicitud ---------- */
+.paso-titulo {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-weight: 700; color: var(--text-main);
+  margin: 0.4rem 0 0.8rem 0;
+}
+.paso-titulo .num {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: var(--color-primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+}
+.convocatorias {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1.4rem;
+}
+.conv {
+  text-align: left;
+  display: flex; flex-direction: column; gap: 0.45rem;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+.conv:hover:not(:disabled) { border-color: var(--color-primary); transform: translateY(-2px); }
+.conv.elegida { border-color: var(--color-primary); background: var(--color-primary-light); }
+.conv.bloqueada { opacity: 0.55; cursor: not-allowed; }
+.conv strong { font-size: 0.98rem; }
+.conv-pie { margin-top: auto; }
+
+.botones { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+.hint { margin: 0.7rem 0 0 0; }
+
+@media (max-width: 720px) {
+  .tracker { grid-template-columns: 1fr; text-align: left; }
+  .tracker li { flex-direction: row; align-items: center; gap: 0.6rem; text-align: left; flex-wrap: wrap; }
+  .tracker li::after { display: none; }
 }

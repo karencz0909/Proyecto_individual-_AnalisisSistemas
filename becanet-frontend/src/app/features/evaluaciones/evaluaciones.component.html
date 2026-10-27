@@ -1,157 +1,157 @@
-<div class="page-container">
-  <!-- Encabezado superior con degradado azul-morado -->
-  <div class="header-banner">
-    <h2>EVALUACIÓN DE SOLICITUDES</h2>
-    <p>Califique solicitudes asignadas a su comité y consulte el historial de evaluaciones registradas.</p>
+<div class="page">
+
+  <header class="page-hero">
+    <h1>Mis evaluaciones</h1>
+    <p>Hola, {{ nombre }}. Estas son las solicitudes que te asignó coordinación. Califícalas y arrástralas a "Revisado".</p>
+  </header>
+
+  <div class="alert" *ngIf="aviso" [ngClass]="'alert-' + aviso.tipo" role="status">
+    <span>{{ aviso.texto }}</span>
+    <button class="alert-close" (click)="aviso = null" aria-label="Cerrar aviso">×</button>
   </div>
 
-  <!-- Mensajes de respuesta -->
-  <div class="alert alert-error" *ngIf="mensajeError">
-     {{ mensajeError }}
+  <p class="muted" *ngIf="cargando">Cargando tus solicitudes asignadas...</p>
+
+  <div class="empty" *ngIf="!cargando && tarjetas.length === 0">
+    <strong>Aún no tienes solicitudes asignadas</strong>
+    Cuando coordinación te asigne solicitudes aparecerán aquí automáticamente.
+    <div class="vacio-accion"><button class="btn btn-ghost btn-sm" (click)="cargar()">↻ Actualizar</button></div>
   </div>
 
-  <div class="alert alert-success" *ngIf="mensajeExito">
-     {{ mensajeExito }}
-  </div>
+  <ng-container *ngIf="!cargando && tarjetas.length > 0">
 
-  <div class="content-grid">
-    <!-- Bloque 1: Registrar Evaluación (1) -->
-    <div class="flat-card">
-      <div class="card-header">
-        <span class="step-badge">1</span>
-        <h3>Registrar evaluación</h3>
+    <!-- Resumen de avance -->
+    <section class="card resumen">
+      <div class="kpis">
+        <div class="kpi"><span class="kpi-n">{{ tarjetas.length }}</span><span class="kpi-t">Asignadas</span></div>
+        <div class="kpi"><span class="kpi-n azul">{{ enRevision.length }}</span><span class="kpi-t">En revisión</span></div>
+        <div class="kpi"><span class="kpi-n verde">{{ revisadas.length }}</span><span class="kpi-t">Revisadas</span></div>
+        <button class="btn btn-ghost btn-sm" (click)="cargar()">↻ Actualizar</button>
       </div>
-      <p class="card-subtitle">Ingrese los datos correspondientes para emitir su calificación y sustentación.</p>
+      <div class="progress"><span [style.width.%]="porcentaje"></span></div>
+      <p class="muted small avance">{{ porcentaje }}% completado</p>
+    </section>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="idSolicitud">ID de la solicitud</label>
-          <input 
-            type="number" 
-            id="idSolicitud" 
-            name="idSolicitud" 
-            class="flat-input" 
-            placeholder="Ej: 1" 
-            min="1" 
-            [(ngModel)]="nuevaEvaluacion.idSolicitud" 
-          />
+    <!-- Tablero -->
+    <div class="tablero">
+
+      <!-- Columna: En revisión -->
+      <section class="columna"
+               [class.sobre]="columnaSobre === 'EN_REVISION'"
+               (dragover)="sobreColumna($event, 'EN_REVISION')"
+               (dragleave)="salirColumna('EN_REVISION')"
+               (drop)="soltar($event, 'EN_REVISION')">
+        <header class="columna-head">
+          <h2>En revisión</h2>
+          <span class="badge badge-blue">{{ enRevision.length }}</span>
+        </header>
+        <div class="vacia" *ngIf="enRevision.length === 0">
+          ¡Todo revisado! Arrastra aquí una tarjeta si necesitas corregirla.
         </div>
+        <ng-container *ngFor="let t of enRevision; trackBy: trackPorId">
+          <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: t }"></ng-container>
+        </ng-container>
+      </section>
 
-        <div class="form-group">
-          <label for="idEvaluador">ID del evaluador (tú)</label>
-          <input 
-            type="number" 
-            id="idEvaluador" 
-            name="idEvaluador" 
-            class="flat-input" 
-            placeholder="Ej: 1" 
-            min="1" 
-            [(ngModel)]="nuevaEvaluacion.idEvaluador" 
-          />
+      <!-- Columna: Revisado -->
+      <section class="columna revisadas"
+               [class.sobre]="columnaSobre === 'REVISADO'"
+               (dragover)="sobreColumna($event, 'REVISADO')"
+               (dragleave)="salirColumna('REVISADO')"
+               (drop)="soltar($event, 'REVISADO')">
+        <header class="columna-head">
+          <h2>Revisado</h2>
+          <span class="badge badge-green">{{ revisadas.length }}</span>
+        </header>
+        <div class="vacia" *ngIf="revisadas.length === 0">
+          Arrastra aquí las solicitudes que ya calificaste.
         </div>
+        <ng-container *ngFor="let t of revisadas; trackBy: trackPorId">
+          <ng-container *ngTemplateOutlet="tarjeta; context: { $implicit: t }"></ng-container>
+        </ng-container>
+      </section>
 
-        <div class="form-group">
-          <label for="puntaje">Puntaje (0 a 100)</label>
-          <input 
-            type="number" 
-            id="puntaje" 
-            name="puntaje" 
-            class="flat-input" 
-            placeholder="0 - 100" 
-            min="0" 
-            max="100" 
-            [(ngModel)]="nuevaEvaluacion.puntaje" 
-          />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="observaciones">Observaciones (obligatorio)</label>
-        <textarea 
-          id="observaciones" 
-          name="observaciones" 
-          class="flat-input flat-textarea" 
-          rows="3" 
-          placeholder="Justifica tu puntaje..." 
-          [(ngModel)]="nuevaEvaluacion.observaciones"
-        ></textarea>
-      </div>
-
-      <div class="button-group">
-        <button 
-          type="button" 
-          class="btn-primary" 
-          (click)="registrarEvaluacion()" 
-          [disabled]="cargando || !nuevaEvaluacion.idSolicitud || !nuevaEvaluacion.idEvaluador"
-        >
-          {{ cargando ? 'Guardando...' : 'Registrar evaluación' }}
-        </button>
-      </div>
-
-      <small class="help-text"> Solo puedes evaluar solicitudes asignadas al comité al que perteneces, y una sola vez por solicitud.</small>
     </div>
-
-    <!-- Bloque 2: Consulta de Evaluaciones -->
-    <div class="flat-card">
-      <div class="card-header">
-        <span class="step-badge">CONSULTA</span>
-        <h3>Evaluaciones de una solicitud</h3>
-      </div>
-      <p class="card-subtitle">Consulte las evaluaciones dictaminadas para una solicitud en particular.</p>
-
-      <div class="form-row search-row">
-        <div class="form-group">
-          <label for="idSolicitudConsulta">ID de la solicitud a consultar</label>
-          <input 
-            type="number" 
-            id="idSolicitudConsulta" 
-            name="idSolicitudConsulta" 
-            class="flat-input" 
-            placeholder="Ej: 1" 
-            min="1" 
-            [(ngModel)]="idSolicitudConsulta" 
-          />
-        </div>
-
-        <div class="form-group search-btn-container">
-          <button 
-            type="button" 
-            class="btn-secondary" 
-            (click)="consultarEvaluaciones()" 
-            [disabled]="cargando || !idSolicitudConsulta"
-          >
-             Ver evaluaciones
-          </button>
-        </div>
-      </div>
-
-      <!-- Tabla de resultados -->
-      <div class="table-container" *ngIf="evaluaciones && evaluaciones.length > 0">
-        <table class="flat-table">
-          <thead>
-            <tr>
-              <th>Evaluador</th>
-              <th>Puntaje</th>
-              <th>Observaciones</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let e of evaluaciones">
-              <td>{{ e.nombreEvaluador || ('Evaluador #' + e.idEvaluador) }}</td>
-              <td><span class="badge-score">{{ e.puntaje }} / 100</span></td>
-              <td>{{ e.observaciones }}</td>
-              <td>{{ e.fechaEvaluacion | date: 'dd/MM/yyyy' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Estado vacío -->
-      <div class="empty-state" *ngIf="!evaluaciones || evaluaciones.length === 0">
-        <span class="icon"></span>
-        <p>Aún no hay evaluaciones registradas para esta solicitud.</p>
-      </div>
-    </div>
-  </div>
+  </ng-container>
 </div>
+
+<!-- ====================== TARJETA DE UNA SOLICITUD ====================== -->
+<ng-template #tarjeta let-t>
+  <article class="kcard"
+           [class.sacudir]="t.sacudir"
+           [class.destacada]="t.destacada"
+           [class.arrastrando]="arrastrandoId === t.idSolicitud"
+           [class.bloqueada]="resuelta(t)">
+
+    <!-- Se arrastra desde el encabezado -->
+    <header class="kcard-head"
+            [attr.draggable]="!resuelta(t) && !t.guardando"
+            (dragstart)="iniciarArrastre($event, t)"
+            (dragend)="finArrastre()"
+            title="Arrastra para cambiar de columna">
+      <span class="asa" aria-hidden="true">⠿</span>
+      <div class="kcard-titulo">
+        <strong>{{ t.nombreEstudiante }}</strong>
+        <small>{{ t.tituloConvocatoria }} · #{{ t.idSolicitud }}</small>
+      </div>
+      <span class="badge badge-green" *ngIf="t.estadoSolicitud === 'APROBADA'">Aprobada</span>
+      <span class="badge badge-red" *ngIf="t.estadoSolicitud === 'RECHAZADA'">Rechazada</span>
+    </header>
+
+    <details class="motivo" *ngIf="t.motivo">
+      <summary>Ver el motivo del estudiante</summary>
+      <p>{{ t.motivo }}</p>
+    </details>
+
+    <div class="docs">
+      <a *ngFor="let d of t.documentos" class="doc" [href]="urlDe(d)" target="_blank" rel="noopener">
+        📄 {{ etiquetaDocumento(d) }}
+      </a>
+      <span class="muted small" *ngIf="t.documentos.length === 0">Sin documentos adjuntos</span>
+    </div>
+
+    <div class="calificar">
+      <div class="puntaje">
+        <label>Puntaje (0 a 100)</label>
+        <div class="puntaje-fila">
+          <input type="range" min="0" max="100" step="1"
+                 [ngModel]="t.puntajeEdit ?? 0"
+                 (ngModelChange)="t.puntajeEdit = $event; guardarBorrador(t)"
+                 [disabled]="resuelta(t) || t.guardando" />
+          <input class="input num" type="number" min="0" max="100" placeholder="—"
+                 [ngModel]="t.puntajeEdit"
+                 (ngModelChange)="t.puntajeEdit = $event; guardarBorrador(t)"
+                 [disabled]="resuelta(t) || t.guardando" />
+        </div>
+      </div>
+
+      <label class="obs-label">Observaciones</label>
+      <textarea class="input" rows="3"
+                placeholder="Justifica tu puntaje..."
+                [ngModel]="t.obsEdit"
+                (ngModelChange)="t.obsEdit = $event; guardarBorrador(t)"
+                [disabled]="resuelta(t) || t.guardando"></textarea>
+    </div>
+
+    <p class="error-linea" *ngIf="t.error">{{ t.error }}</p>
+
+    <footer class="kcard-pie" *ngIf="!resuelta(t)">
+      <ng-container *ngIf="t.estadoRevision !== 'REVISADO'">
+        <button class="btn btn-primary btn-sm" (click)="moverA(t, 'REVISADO')" [disabled]="t.guardando">
+          {{ t.guardando ? 'Guardando...' : 'Marcar como revisado →' }}
+        </button>
+      </ng-container>
+      <ng-container *ngIf="t.estadoRevision === 'REVISADO'">
+        <button class="btn btn-success btn-sm" (click)="marcarRevisada(t)" [disabled]="t.guardando">
+          {{ t.guardando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+        <button class="btn btn-ghost btn-sm" (click)="moverA(t, 'EN_REVISION')" [disabled]="t.guardando">
+          ← Volver a revisión
+        </button>
+      </ng-container>
+    </footer>
+    <p class="muted small bloqueo" *ngIf="resuelta(t)">
+      Coordinación ya resolvió esta solicitud; la evaluación quedó bloqueada.
+    </p>
+  </article>
+</ng-template>

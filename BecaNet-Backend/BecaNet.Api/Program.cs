@@ -78,6 +78,7 @@ builder.Services.AddScoped<IDocumentoService, DocumentoService>();
 builder.Services.AddScoped<IComiteService, ComiteService>();
 builder.Services.AddScoped<IEvaluacionService, EvaluacionService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
+builder.Services.AddScoped<IAsignacionService, AsignacionService>();
 
 // ---- Patrón Observer ----
 builder.Services.AddSingleton<SolicitudNotificador>();
@@ -93,7 +94,7 @@ foreach (var observador in app.Services.GetServices<ISolicitudObserver>())
     notificador.Suscribir(observador);
 }
 
-// ---- Creación de Base de Datos y Usuarios de prueba ----
+// ---- Creación de Base de Datos y datos de prueba ----
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -135,7 +136,60 @@ using (var scope = app.Services.CreateScope())
             });
         }
 
+        if (!db.Evaluadores.Any(e => e.Correo == "evaluador3@becanet.gt"))
+        {
+            db.Evaluadores.Add(new EvaluadorComite
+            {
+                Nombre = "Mario Díaz",
+                Correo = "evaluador3@becanet.gt",
+                Contrasena = PasswordHasher.Hashear("Eval1234"),
+                Especialidad = "Evaluación Documental"
+            });
+        }
+
+        if (!db.Estudiantes.Any(e => e.Correo == "estudiante@becanet.gt"))
+        {
+            db.Estudiantes.Add(new Estudiante
+            {
+                Nombre = "Mariana López",
+                Correo = "estudiante@becanet.gt",
+                Contrasena = PasswordHasher.Hashear("Estu1234"),
+                NivelAcademico = "Universitario",
+                InstitucionProcedencia = "Universidad Mariano Gálvez"
+            });
+        }
+
         db.SaveChanges();
+
+        // Convocatorias abiertas para que el estudiante tenga a qué postular
+        if (!db.Convocatorias.Any())
+        {
+            var coordinador = db.Coordinadores.First(c => c.Correo == "coordinador@becanet.gt");
+
+            db.Convocatorias.Add(new Convocatoria
+            {
+                Titulo = "Beca de Excelencia Académica 2026",
+                Descripcion = "Apoyo económico para estudiantes con rendimiento sobresaliente.",
+                Requisitos = "Promedio mínimo de 85 puntos y certificación de estudios vigente.",
+                FechaApertura = DateTime.Today.AddDays(-7),
+                FechaCierre = DateTime.Today.AddMonths(3),
+                Estado = EstadoConvocatoria.Abierta,
+                IdCoordinador = coordinador.Id
+            });
+
+            db.Convocatorias.Add(new Convocatoria
+            {
+                Titulo = "Beca de Apoyo Socioeconómico 2026",
+                Descripcion = "Cobertura de matrícula para estudiantes con necesidad económica comprobada.",
+                Requisitos = "Estudio socioeconómico y certificación de estudios vigente.",
+                FechaApertura = DateTime.Today.AddDays(-3),
+                FechaCierre = DateTime.Today.AddMonths(2),
+                Estado = EstadoConvocatoria.Abierta,
+                IdCoordinador = coordinador.Id
+            });
+
+            db.SaveChanges();
+        }
     }
     catch (Exception ex)
     {

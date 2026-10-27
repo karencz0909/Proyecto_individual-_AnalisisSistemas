@@ -10,14 +10,21 @@ export class DocumentoService {
 
   constructor(private http: HttpClient) {}
 
-  // US-008: cargar un documento (multipart/form-data)
-  cargar(idSolicitud: number, archivo: File): Observable<Documento> {
+  /** tipoDocumento: CERTIFICACION_ESTUDIOS (obligatorio) u OTRO. */
+  cargar(idSolicitud: number, archivo: File, tipoDocumento: string = 'OTRO'): Observable<Documento> {
     const formData = new FormData();
     formData.append('archivo', archivo, archivo.name);
+    formData.append('tipoDocumento', tipoDocumento);
     return this.http.post<Documento>(`${this.baseUrl}/solicitud/${idSolicitud}`, formData);
   }
 
   obtenerPorSolicitud(idSolicitud: number): Observable<Documento[]> {
     return this.http.get<Documento[]>(`${this.baseUrl}/solicitud/${idSolicitud}`);
+  }
+
+  /** Los archivos viven en el backend (http://localhost:5000/uploads/...), no en Angular. */
+  urlCompleta(urlRelativa: string): string {
+    const origen = environment.apiUrl.replace(/\/api\/?$/, '');
+    return `${origen}${urlRelativa}`;
   }
 }
