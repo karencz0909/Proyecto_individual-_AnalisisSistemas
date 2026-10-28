@@ -6,7 +6,7 @@ import { forkJoin } from 'rxjs';
 import { SolicitudService } from '../../services/solicitud.service';
 import { ConvocatoriaService } from '../../services/convocatoria.service';
 import { SesionService } from '../../services/sesion.service';
-import { Solicitud } from '../../models/solicitud.model';
+import { NotificacionSolicitud, Solicitud } from '../../models/solicitud.model';
 import { Convocatoria } from '../../models/convocatoria.model';
 
 interface Paso {
@@ -34,9 +34,11 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
 
   convocatorias: Convocatoria[] = [];
   solicitudes: Solicitud[] = [];
+  notificaciones: NotificacionSolicitud[] = [];
 
   convocatoriaElegida: number | null = null;
   motivo = '';
+  montoSolicitado: number | null = null;
 
   cargando = true;
   enviando = false;
@@ -75,11 +77,13 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
     this.cargando = true;
     forkJoin({
       convocatorias: this.convocatoriaService.obtenerAbiertas(),
-      solicitudes: this.solicitudService.obtenerMias()
+      solicitudes: this.solicitudService.obtenerMias(),
+      notificaciones: this.solicitudService.obtenerNotificacionesMias()
     }).subscribe({
       next: (r) => {
         this.convocatorias = r.convocatorias;
         this.solicitudes = r.solicitudes;
+        this.notificaciones = r.notificaciones;
         this.ultimaActualizacion = new Date();
         this.cargando = false;
       },
@@ -91,9 +95,10 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
   }
 
   cargarSolicitudes(): void {
-    this.solicitudService.obtenerMias().subscribe({
-      next: (lista) => {
-        this.solicitudes = lista;
+    forkJoin({ solicitudes: this.solicitudService.obtenerMias(), notificaciones: this.solicitudService.obtenerNotificacionesMias() }).subscribe({
+      next: (r) => {
+        this.solicitudes = r.solicitudes;
+        this.notificaciones = r.notificaciones;
         this.ultimaActualizacion = new Date();
       },
       error: () => { /* si falla el refresco automático no molestamos al usuario */ }
@@ -122,7 +127,7 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
   }
 
   get puedeEnviar(): boolean {
-    return this.convocatoriaElegida !== null && this.motivoValido && !this.enviando;
+    return this.convocatoriaElegida !== null && this.motivoValido && this.montoSolicitado !== null && this.montoSolicitado > 0 && !this.enviando;
   }
 
   enviar(): void {
@@ -132,7 +137,7 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
     this.aviso = null;
 
     this.solicitudService
-      .crearMia({ idConvocatoria: this.convocatoriaElegida, motivo: this.motivo.trim() })
+      .crearMia({ idConvocatoria: this.convocatoriaElegida, motivo: this.motivo.trim(), montoSolicitado: this.montoSolicitado! })
       .subscribe({
         next: () => {
           this.enviando = false;
@@ -154,6 +159,7 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
   limpiarFormulario(): void {
     this.convocatoriaElegida = null;
     this.motivo = '';
+    this.montoSolicitado = null;
     this.borradorGuardado = false;
     localStorage.removeItem(CLAVE_BORRADOR);
   }
@@ -169,7 +175,7 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
     }
     localStorage.setItem(
       CLAVE_BORRADOR,
-      JSON.stringify({ idConvocatoria: this.convocatoriaElegida, motivo: this.motivo })
+      JSON.stringify({ idConvocatoria: this.convocatoriaElegida, motivo: this.motivo, montoSolicitado: this.montoSolicitado })
     );
     this.borradorGuardado = true;
   }
@@ -181,6 +187,7 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
       const b = JSON.parse(guardado);
       this.convocatoriaElegida = b.idConvocatoria ?? null;
       this.motivo = b.motivo ?? '';
+      this.montoSolicitado = b.montoSolicitado ?? null;
       this.borradorGuardado = true;
       this.aviso = { tipo: 'info', texto: 'Recuperamos el borrador que dejaste a medias.' };
     } catch {
@@ -241,6 +248,13 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
       s.estado === 'RECHAZADA' ? { titulo: 'Rechazada', detalle: 'Revisa el motivo', estado: 'error' } :
       s.estado === 'EVALUADA'  ? { titulo: 'Resultado', detalle: 'Decisión de coordinación', estado: 'actual' } :
                                  { titulo: 'Resultado', detalle: 'Pendiente', estado: 'pendiente' };
+
+    if (s.montoSolicitado > 10_000 && resultado.estado === 'actual') {
+      const decisionEvaluador = s.aprobaciones?.find(a => a.tipo === 'EVALUADOR');
+      resultado.detalle = decisionEvaluador?.aprobada
+        ? 'El evaluador aprobó; pendiente de coordinación'
+        : 'Pendiente de decisión del evaluador';
+    }
 
     return [
       { titulo: 'Enviada', detalle: new Date(s.fechaCreacion).toLocaleDateString('es-GT'), estado: 'hecho' },

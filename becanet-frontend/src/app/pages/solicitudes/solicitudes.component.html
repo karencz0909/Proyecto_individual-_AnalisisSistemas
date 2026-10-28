@@ -12,6 +12,13 @@
 
   <p class="muted" *ngIf="cargando">Cargando tu información...</p>
 
+  <section class="card" *ngIf="!cargando && notificaciones.length > 0">
+    <h2 class="card-title">Notificaciones de tus solicitudes</h2>
+    <p class="muted small" *ngFor="let n of notificaciones">
+      {{ n.mensaje }} · {{ n.fechaHoraUtc | date:'dd/MM/yyyy HH:mm' }}
+    </p>
+  </section>
+
   <ng-container *ngIf="!cargando">
     <!-- Si ya tiene solicitudes, se muestran primero; si no, primero el formulario -->
     <ng-container *ngIf="solicitudes.length > 0">
@@ -44,6 +51,7 @@
         <div>
           <h3>{{ s.tituloConvocatoria }}</h3>
           <span class="muted small">Solicitud #{{ s.id }}</span>
+          <span class="muted small">Monto solicitado: Q{{ s.montoSolicitado | number:'1.2-2' }}</span>
         </div>
         <span class="badge" [ngClass]="etiqueta(s).clase">{{ etiqueta(s).texto }}</span>
       </div>
@@ -146,7 +154,15 @@
         Ya postulaste a todas las convocatorias abiertas.
       </p>
 
-      <div class="paso-titulo"><span class="num">2</span> Cuéntanos el motivo de tu solicitud</div>
+      <div class="paso-titulo"><span class="num">2</span> Indica el monto de beca solicitado</div>
+      <div class="field">
+        <label for="montoSolicitado">Monto solicitado (Q)</label>
+        <input id="montoSolicitado" class="input" type="number" min="0.01" step="0.01"
+               [(ngModel)]="montoSolicitado" (ngModelChange)="guardarBorrador()" placeholder="Ej. 8500.00" />
+        <small class="muted">Para montos mayores de Q10,000 se necesitan decisiones del evaluador y del coordinador.</small>
+      </div>
+
+      <div class="paso-titulo"><span class="num">3</span> Cuéntanos el motivo de tu solicitud</div>
 
       <div class="field">
         <label for="motivo">¿Por qué solicitas esta beca?</label>
@@ -173,6 +189,7 @@
       <p class="muted small hint" *ngIf="!puedeEnviar && !enviando">
         <ng-container *ngIf="convocatoriaElegida === null">Elige una convocatoria para continuar. </ng-container>
         <ng-container *ngIf="!motivoValido">Escribe al menos {{ MIN_MOTIVO }} caracteres en el motivo.</ng-container>
+        <ng-container *ngIf="montoSolicitado === null || montoSolicitado <= 0">Indica un monto mayor que cero.</ng-container>
       </p>
     </ng-container>
   </section>

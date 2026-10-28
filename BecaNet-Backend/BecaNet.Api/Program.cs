@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using BecaNet.Api.Data;
 using BecaNet.Api.Models;
 using BecaNet.Api.Observers;
@@ -78,6 +79,8 @@ builder.Services.AddScoped<IDocumentoService, DocumentoService>();
 builder.Services.AddScoped<IComiteService, ComiteService>();
 builder.Services.AddScoped<IEvaluacionService, EvaluacionService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
+builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IAsignacionService, AsignacionService>();
 
 // ---- Patrón Observer ----
@@ -102,6 +105,22 @@ using (var scope = app.Services.CreateScope())
         var db = scope.ServiceProvider.GetRequiredService<BecaNetDbContext>();
 
         db.Database.EnsureCreated();
+
+        // EnsureCreated no modifica una base que ya existía. Aplicamos el parche
+        // idempotente después de asegurar la base y antes de consultar sus tablas.
+        var rutasScript = new[]
+        {
+            Path.Combine(app.Environment.ContentRootPath, "BecaNet_Nuevos_Requisitos.sql"),
+            Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "BecaNet_Nuevos_Requisitos.sql"))
+        };
+        var rutaScript = rutasScript.FirstOrDefault(File.Exists)
+            ?? throw new FileNotFoundException(
+                "No se encontró BecaNet_Nuevos_Requisitos.sql; no se puede actualizar el esquema de la base de datos.",
+                rutasScript[0]);
+        var scriptEsquema = await File.ReadAllTextAsync(rutaScript);
+        var lotesSql = Regex.Split(scriptEsquema, @"(?im)^\s*GO\s*;?\s*$");
+        foreach (var loteSql in lotesSql.Where(lote => !string.IsNullOrWhiteSpace(lote)))
+            await db.Database.ExecuteSqlRawAsync(loteSql);
 
         if (!db.Coordinadores.Any(c => c.Correo == "coordinador@becanet.gt"))
         {
@@ -193,7 +212,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "Error preparando la base de datos.");
+        app.Logger.LogCritical(ex, "No se pudo preparar o actualizar la base de datos. La API no puede continuar con un esquema incompleto.");
+        throw;
     }
 }
 

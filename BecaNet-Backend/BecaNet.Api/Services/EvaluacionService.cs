@@ -61,10 +61,20 @@ public class EvaluacionService : IEvaluacionService
         };
 
         var creada = await _evaluacionRepo.CrearAsync(evaluacion);
+        _context.RegistrosAuditoria.Add(new RegistroAuditoria
+        {
+            IdSolicitud = dto.IdSolicitud,
+            IdUsuario = dto.IdEvaluador,
+            RolUsuario = TiposUsuario.Evaluador,
+            Operacion = "REGISTRO_EVALUACION",
+            Detalle = $"Puntaje registrado: {creada.Puntaje:N2}; observaciones registradas.",
+            FechaHoraUtc = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
 
         // Cuando todos los miembros del comité evaluaron, la solicitud pasa a "Evaluada"
         // y el patrón Observer notifica automáticamente (estudiante + auditoría).
-        await ActualizarEstadoSiCorrespondeAsync(solicitud.Id, solicitud.IdComite.Value);
+        await ActualizarEstadoSiCorrespondeAsync(solicitud.Id, solicitud.IdComite.Value, dto.IdEvaluador);
 
         var evaluador = await _context.Evaluadores.FindAsync(dto.IdEvaluador);
 
@@ -95,7 +105,7 @@ public class EvaluacionService : IEvaluacionService
         }).ToList();
     }
 
-    private async Task ActualizarEstadoSiCorrespondeAsync(int idSolicitud, int idComite)
+    private async Task ActualizarEstadoSiCorrespondeAsync(int idSolicitud, int idComite, int idEvaluador)
     {
         var comite = await _comiteRepo.ObtenerPorIdAsync(idComite);
         var totalMiembros = comite?.Miembros.Count ?? 0;
@@ -110,8 +120,9 @@ public class EvaluacionService : IEvaluacionService
             {
                 var estadoAnterior = solicitud.Estado;
                 solicitud.Estado = EstadoSolicitud.Evaluada;
+                _context.Notificaciones.Add(new NotificacionSolicitud { IdSolicitud = solicitud.Id, IdEstudiante = solicitud.IdEstudiante, EstadoAnterior = estadoAnterior, EstadoNuevo = solicitud.Estado });
+                _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = solicitud.Id, IdUsuario = idEvaluador, RolUsuario = TiposUsuario.Evaluador, Operacion = "CAMBIO_ESTADO_EVALUADA", Detalle = $"Estado: {estadoAnterior} -> {solicitud.Estado}", FechaHoraUtc = DateTime.UtcNow });
                 await _context.SaveChangesAsync();
-
                 _notificador.NotificarCambioEstado(solicitud, estadoAnterior);
             }
         }

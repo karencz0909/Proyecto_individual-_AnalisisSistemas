@@ -138,3 +138,12 @@ C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\obj
 C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\obj\Debug\net8.0\ref\BecaNet.Api.dll
 C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\obj\Debug\net8.0\BecaNet.Api.sourcelink.json
 C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\karen\OneDrive\Documentos\AnalisisFinal\BecaNet-Backend\BecaNet.Api\bin\Debug\net8.0\BecaNet_Nuevos_Requisitos.sql
+C:\Users\karen\Documents\Codex\2026-10-27\hi\work\becanet-buildcheck\appsettings.json
+C:\Users\karen\Documents\Codex\2026-10-27\hi\work\becanet-buildcheck\BecaNet.Api.staticwebassets.runtime.json
+C:\Users\karen\Documents\Codex\2026-10-27\hi\work\becanet-buildcheck\BecaNet.Api.staticwebassets.endpoints.json
+C:\Users\karen\Documents\Codex\2026-10-27\hi\work\becanet-buildcheck\BecaNet_Nuevos_Requisitos.sql
+C:\Users\karen\Documents\Codex\2026-10-27\hi\work\becanet-buildcheck\BecaNet.Api.deps.json
+C:\Users\karen\Documents\Codex\2026-10-27\hi\work\becanet-buildcheck\BecaNet.Api.runtimeconfig.json
+C:\Users\karen\Documents\Codex\2026-10-27\hi\work\becanet-buildcheck\BecaNet.Api.dll
+C:\Users\karen\Documents\Codex\2026-10-27\hi\work\becanet-buildcheck\BecaNet.Api.pdb

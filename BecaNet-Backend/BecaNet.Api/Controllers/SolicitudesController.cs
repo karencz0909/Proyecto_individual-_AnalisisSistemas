@@ -47,7 +47,8 @@ public class SolicitudesController : ControllerBase
             {
                 IdEstudiante = idEstudiante.Value,
                 IdConvocatoria = dto.IdConvocatoria,
-                Motivo = dto.Motivo.Trim()
+                Motivo = dto.Motivo.Trim(),
+                MontoSolicitado = dto.MontoSolicitado
             });
             return CreatedAtAction(nameof(ObtenerPorId), new { id = creada.Id }, creada);
         }
@@ -87,13 +88,14 @@ public class SolicitudesController : ControllerBase
     public async Task<IActionResult> Cancelar(int id, [FromBody] CancelarSolicitudDTO dto)
     {
         var idEstudiante = User.ObtenerIdUsuario();
+        if (idEstudiante is null) return Unauthorized();
         var solicitud = await _solicitudService.ObtenerPorIdAsync(id);
         if (solicitud is null) return NotFound(new { mensaje = "La solicitud no existe." });
         if (solicitud.IdEstudiante != idEstudiante) return Forbid();
 
         try
         {
-            await _solicitudService.CancelarSolicitudAsync(id, dto);
+            await _solicitudService.CancelarSolicitudAsync(id, dto, idEstudiante.Value);
             return NoContent();
         }
         catch (InvalidOperationException ex)
@@ -109,11 +111,24 @@ public class SolicitudesController : ControllerBase
     {
         try
         {
-            return Ok(await _solicitudService.ResolverAsync(id, dto));
+            var idUsuario = User.ObtenerIdUsuario();
+            if (idUsuario is null) return Unauthorized();
+            return Ok(await _solicitudService.ResolverAsync(id, dto, idUsuario.Value));
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { mensaje = ex.Message });
         }
+    }
+
+    [HttpPost("{id}/aprobacion-evaluador")]
+    [Authorize(Roles = TiposUsuario.Evaluador)]
+    public async Task<ActionResult<SolicitudDTO>> AprobarComoEvaluador(int id, [FromBody] RegistrarAprobacionDTO dto)
+    {
+        var idEvaluador = User.ObtenerIdUsuario();
+        if (idEvaluador is null) return Unauthorized();
+        try { return Ok(await _solicitudService.AprobarComoEvaluadorAsync(id, dto, idEvaluador.Value)); }
+        catch (UnauthorizedAccessException) { return Forbid(); }
+        catch (InvalidOperationException ex) { return BadRequest(new { mensaje = ex.Message }); }
     }
 }

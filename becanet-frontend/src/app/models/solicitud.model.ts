@@ -5,6 +5,7 @@ export interface Solicitud {
   estadoRevision?: string;
   observaciones?: string;
   motivo?: string;
+  montoSolicitado: number;
   motivoResolucion?: string;
   fechaResolucion?: string;
   idEstudiante: number;
@@ -14,11 +15,30 @@ export interface Solicitud {
   idComite?: number;
   cantidadDocumentos: number;
   tieneCertificacionEstudios?: boolean;
+  aprobaciones?: AprobacionSolicitud[];
+}
+
+export interface AprobacionSolicitud {
+  tipo: string;
+  idUsuario: number;
+  rolUsuario: string;
+  aprobada: boolean;
+  motivo?: string;
+  fechaHoraUtc: string;
+}
+
+export interface NotificacionSolicitud {
+  id: number;
+  idSolicitud: number;
+  estadoNuevo: string;
+  mensaje: string;
+  fechaHoraUtc: string;
 }
 
 export interface CrearSolicitud {
   idEstudiante: number;
   idConvocatoria: number;
+  montoSolicitado: number;
   observaciones?: string;
 }
 
@@ -26,6 +46,7 @@ export interface CrearSolicitud {
 export interface CrearMiSolicitud {
   idConvocatoria: number;
   motivo: string;
+  montoSolicitado: number;
 }
 
 export interface CancelarSolicitud {

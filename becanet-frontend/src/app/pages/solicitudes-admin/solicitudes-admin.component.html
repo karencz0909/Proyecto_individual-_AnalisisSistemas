@@ -150,10 +150,11 @@
 
         <!-- Decisión final: solo cuando el evaluador ya calificó -->
         <div class="decision" *ngIf="etapa(s) === 'EVALUADA'">
-          <span class="muted small">El evaluador terminó. Falta tu decisión:</span>
+          <span class="muted small">El evaluador terminó. Monto solicitado: Q{{ s.montoSolicitado | number:'1.2-2' }}.</span>
+          <span class="muted small" *ngIf="s.montoSolicitado > 10000">Aprobación del evaluador: {{ s.aprobadaPorEvaluador ? 'registrada' : 'pendiente' }}.</span>
 
           <ng-container *ngIf="confirmandoAprobar !== s.idSolicitud && rechazando !== s.idSolicitud">
-            <button class="btn btn-success btn-sm" (click)="pedirAprobar(s.idSolicitud)">Aprobar</button>
+            <button class="btn btn-success btn-sm" (click)="pedirAprobar(s.idSolicitud)" [disabled]="s.montoSolicitado > 10000 && !s.aprobadaPorEvaluador">Aprobar</button>
             <button class="btn btn-danger btn-sm" (click)="pedirRechazo(s.idSolicitud)">Rechazar</button>
           </ng-container>
 
@@ -180,6 +181,11 @@
 
         <!-- Detalle desplegable -->
         <div class="detalle" *ngIf="expandida === s.idSolicitud">
+          <div>
+            <span class="muted small">Monto solicitado</span>
+            <p>Q{{ s.montoSolicitado | number:'1.2-2' }}</p>
+            <p *ngIf="s.montoSolicitado > 10000">Responsable de evaluación: {{ s.aprobadaPorEvaluador ? 'aprobó' : 'pendiente' }} · Coordinación: {{ s.aprobadaPorCoordinador ? 'autorizó' : 'pendiente' }}</p>
+          </div>
           <div>
             <span class="muted small">Motivo del estudiante</span>
             <p>{{ s.motivo || 'No escribió un motivo.' }}</p>

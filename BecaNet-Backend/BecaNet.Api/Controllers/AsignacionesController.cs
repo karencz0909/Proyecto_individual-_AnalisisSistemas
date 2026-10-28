@@ -92,7 +92,9 @@ public class AsignacionesController : ControllerBase
     {
         try
         {
-            return Ok(await _asignacionService.DistribuirAsync(dto));
+            var idCoordinador = User.ObtenerIdUsuario();
+            if (idCoordinador is null) return Unauthorized();
+            return Ok(await _asignacionService.DistribuirAsync(dto, idCoordinador.Value));
         }
         catch (InvalidOperationException ex)
         {
@@ -107,7 +109,9 @@ public class AsignacionesController : ControllerBase
     {
         try
         {
-            return Ok(await _asignacionService.AsignarManualAsync(idSolicitud, dto.IdEvaluador));
+            var idCoordinador = User.ObtenerIdUsuario();
+            if (idCoordinador is null) return Unauthorized();
+            return Ok(await _asignacionService.AsignarManualAsync(idSolicitud, dto.IdEvaluador, idCoordinador.Value));
         }
         catch (InvalidOperationException ex)
         {

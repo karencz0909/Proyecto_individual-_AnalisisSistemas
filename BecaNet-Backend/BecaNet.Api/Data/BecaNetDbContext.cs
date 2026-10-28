@@ -16,6 +16,9 @@ public class BecaNetDbContext : DbContext
     public DbSet<ComiteEvaluador> Comites => Set<ComiteEvaluador>();
     public DbSet<ComiteMiembro> ComiteMiembros => Set<ComiteMiembro>();
     public DbSet<Evaluacion> Evaluaciones => Set<Evaluacion>();
+    public DbSet<AprobacionSolicitud> Aprobaciones => Set<AprobacionSolicitud>();
+    public DbSet<RegistroAuditoria> RegistrosAuditoria => Set<RegistroAuditoria>();
+    public DbSet<NotificacionSolicitud> Notificaciones => Set<NotificacionSolicitud>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +47,7 @@ public class BecaNetDbContext : DbContext
         modelBuilder.Entity<Solicitud>(cfg =>
         {
             cfg.Property(s => s.Estado).HasMaxLength(20);
+            cfg.Property(s => s.MontoSolicitado).HasColumnType("decimal(12,2)");
 
             cfg.HasOne(s => s.Estudiante)
                .WithMany(e => e.Solicitudes)
@@ -69,6 +73,37 @@ public class BecaNetDbContext : DbContext
                .WithMany()
                .HasForeignKey(s => s.IdEvaluadorAsignado)
                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AprobacionSolicitud>(cfg =>
+        {
+            cfg.ToTable("AprobacionSolicitud");
+            cfg.Property(a => a.Tipo).HasMaxLength(20).IsRequired();
+            cfg.Property(a => a.RolUsuario).HasMaxLength(30).IsRequired();
+            cfg.Property(a => a.Motivo).HasMaxLength(1000);
+            cfg.HasIndex(a => new { a.IdSolicitud, a.Tipo }).IsUnique();
+            cfg.HasOne(a => a.Solicitud).WithMany(s => s.Aprobaciones)
+                .HasForeignKey(a => a.IdSolicitud).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<RegistroAuditoria>(cfg =>
+        {
+            cfg.ToTable("RegistroAuditoria");
+            cfg.Property(a => a.RolUsuario).HasMaxLength(30).IsRequired();
+            cfg.Property(a => a.Operacion).HasMaxLength(80).IsRequired();
+            cfg.Property(a => a.Detalle).HasMaxLength(2000);
+            cfg.HasIndex(a => new { a.IdSolicitud, a.FechaHoraUtc });
+            cfg.HasOne<Solicitud>().WithMany().HasForeignKey(a => a.IdSolicitud).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<NotificacionSolicitud>(cfg =>
+        {
+            cfg.ToTable("NotificacionSolicitud");
+            cfg.Property(n => n.EstadoAnterior).HasMaxLength(20).IsRequired();
+            cfg.Property(n => n.EstadoNuevo).HasMaxLength(20).IsRequired();
+            cfg.Property(n => n.Evento).HasMaxLength(60).IsRequired();
+            cfg.HasIndex(n => new { n.IdSolicitud, n.FechaHoraUtc });
+            cfg.HasOne<Solicitud>().WithMany().HasForeignKey(n => n.IdSolicitud).OnDelete(DeleteBehavior.Restrict);
         });
 
         // ---- Documento (composición: se borra en cascada con la Solicitud) ----

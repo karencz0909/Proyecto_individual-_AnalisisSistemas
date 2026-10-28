@@ -1,5 +1,16 @@
 namespace BecaNet.Api.DTOs;
 
+public class RegistroAuditoriaDTO
+{
+    public long Id { get; set; }
+    public int IdSolicitud { get; set; }
+    public int IdUsuario { get; set; }
+    public string RolUsuario { get; set; } = string.Empty;
+    public string Operacion { get; set; } = string.Empty;
+    public string? Detalle { get; set; }
+    public DateTime FechaHoraUtc { get; set; }
+}
+
 /// <summary>US-016: Reporte de resultados de una convocatoria.</summary>
 public class ReporteConvocatoriaDTO
 {

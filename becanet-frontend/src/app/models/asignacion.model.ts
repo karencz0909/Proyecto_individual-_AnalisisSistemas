@@ -11,6 +11,9 @@ export interface AsignacionEvaluador {
   nombreEstudiante: string;
   tituloConvocatoria: string;
   motivo?: string;
+  montoSolicitado: number;
+  decisionEvaluadorRegistrada: boolean;
+  aprobadaPorEvaluador: boolean;
   estadoSolicitud: string;
   estadoRevision: string; // EN_REVISION | REVISADO
   fechaAsignacion?: string;
@@ -32,6 +35,9 @@ export interface SolicitudCoordinador {
   correoEstudiante: string;
   tituloConvocatoria: string;
   motivo?: string;
+  montoSolicitado: number;
+  aprobadaPorEvaluador: boolean;
+  aprobadaPorCoordinador: boolean;
   estado: string;
   estadoRevision: string; // SIN_ASIGNAR | EN_REVISION | REVISADO
   idEvaluadorAsignado?: number | null;

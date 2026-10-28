@@ -9,6 +9,7 @@ public class Solicitud
 
     /// <summary>Texto en el que el estudiante explica por qué solicita la beca.</summary>
     public string? Motivo { get; set; }
+    public decimal MontoSolicitado { get; set; }
 
     public string? MotivoResolucion { get; set; } // motivo de aprobación/rechazo (US-013)
     public DateTime? FechaResolucion { get; set; } // fecha en que se aprobó/rechazó (US-013)
@@ -30,4 +31,5 @@ public class Solicitud
 
     public ICollection<Documento> Documentos { get; set; } = new List<Documento>();
     public ICollection<Evaluacion> Evaluaciones { get; set; } = new List<Evaluacion>();
+    public ICollection<AprobacionSolicitud> Aprobaciones { get; set; } = new List<AprobacionSolicitud>();
 }

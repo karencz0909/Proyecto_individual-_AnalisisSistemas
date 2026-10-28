@@ -76,7 +76,7 @@ public class AsignacionServiceTests
         SembrarSolicitudes(context, 10);
         var service = new AsignacionService(context, new SolicitudNotificador());
 
-        var resultado = await service.DistribuirAsync(new DistribuirDTO());
+        var resultado = await service.DistribuirAsync(new DistribuirDTO(), 1);
 
         Assert.Equal(10, resultado.TotalAsignadas);
         Assert.Equal(5, resultado.PorEvaluador.Count);
@@ -95,7 +95,7 @@ public class AsignacionServiceTests
         SembrarSolicitudes(context, 3, conCertificacion: false);
         var service = new AsignacionService(context, new SolicitudNotificador());
 
-        var resultado = await service.DistribuirAsync(new DistribuirDTO());
+        var resultado = await service.DistribuirAsync(new DistribuirDTO(), 1);
 
         Assert.Equal(0, resultado.TotalAsignadas);
         Assert.Equal(3, resultado.OmitidasSinCertificacion);

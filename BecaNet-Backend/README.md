@@ -21,6 +21,12 @@ en el Anexo 5 (Controladores → Servicios → Repositorios → Entity Framework
 
 ## Pasos para ejecutar el proyecto
 
+### Actualización del esquema para los nuevos requisitos
+
+Al iniciar, la API aplica `BecaNet_Nuevos_Requisitos.sql` de forma idempotente después de `EnsureCreated()`. Esto agrega el monto solicitado, las aprobaciones, los registros de auditoría inmutables y los eventos de notificación a una base existente. También puedes ejecutar el script manualmente en SSMS si necesitas actualizarla antes del arranque.
+
+Para solicitudes mayores de Q10,000, el evaluador asignado registra primero su decisión en la tarjeta; después el coordinador puede autorizar. Las solicitudes de Q10,000 o menos conservan la decisión vigente del coordinador.
+
 ### 1. Crear la base de datos
 
 Abrir SSMS y ejecutar el script `BecaNet_Script_SQLServer.sql` que ya se entregó

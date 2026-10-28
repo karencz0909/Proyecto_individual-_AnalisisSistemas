@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AsignacionService } from '../../services/asignacion.service';
 import { DocumentoService } from '../../services/documento.service';
 import { SesionService } from '../../services/sesion.service';
+import { SolicitudService } from '../../services/solicitud.service';
 import { AsignacionEvaluador, DocumentoResumen } from '../../models/asignacion.model';
 
 type Columna = 'EN_REVISION' | 'REVISADO';
@@ -40,7 +41,8 @@ export class EvaluacionesComponent implements OnInit {
   constructor(
     private asignacionService: AsignacionService,
     private documentoService: DocumentoService,
-    private sesionService: SesionService
+    private sesionService: SesionService,
+    private solicitudService: SolicitudService
   ) {}
 
   ngOnInit(): void {
@@ -101,6 +103,10 @@ export class EvaluacionesComponent implements OnInit {
     return t.estadoSolicitud === 'APROBADA' || t.estadoSolicitud === 'RECHAZADA';
   }
 
+  bloqueada(t: Tarjeta): boolean {
+    return this.resuelta(t) || (t.montoSolicitado > 10000 && t.decisionEvaluadorRegistrada);
+  }
+
   trackPorId(_: number, t: Tarjeta): number {
     return t.idSolicitud;
   }
@@ -117,7 +123,7 @@ export class EvaluacionesComponent implements OnInit {
   // Arrastrar y soltar entre columnas
   // ------------------------------------------------------------------
   iniciarArrastre(ev: DragEvent, t: Tarjeta): void {
-    if (this.resuelta(t) || t.guardando) {
+    if (this.bloqueada(t) || t.guardando) {
       ev.preventDefault();
       return;
     }
@@ -155,6 +161,7 @@ export class EvaluacionesComponent implements OnInit {
 
   /** También lo usan los botones, para quien no pueda arrastrar. */
   moverA(t: Tarjeta, columna: Columna): void {
+    if (this.bloqueada(t)) return;
     if (columna === 'REVISADO' && t.estadoRevision !== 'REVISADO') {
       this.marcarRevisada(t);
     } else if (columna === 'EN_REVISION' && t.estadoRevision === 'REVISADO') {
@@ -222,6 +229,26 @@ export class EvaluacionesComponent implements OnInit {
       obsEdit: a.observacionesEvaluacion ?? t.obsEdit,
       guardando: false,
       error: ''
+    });
+  }
+
+  decidirAprobacion(t: Tarjeta, aprobar: boolean): void {
+    const motivo = aprobar ? undefined : window.prompt('Indica el motivo del rechazo:')?.trim();
+    if (!aprobar && (!motivo || motivo.length < 5)) {
+      t.error = 'El motivo del rechazo debe tener al menos 5 caracteres.';
+      return;
+    }
+    t.guardando = true;
+    t.error = '';
+    this.solicitudService.aprobarComoEvaluador(t.idSolicitud, { aprobar, motivo }).subscribe({
+      next: () => {
+        t.guardando = false;
+        t.decisionEvaluadorRegistrada = true;
+        t.aprobadaPorEvaluador = aprobar;
+        if (!aprobar) t.estadoSolicitud = 'RECHAZADA';
+        this.aviso = { tipo: aprobar ? 'success' : 'info', texto: aprobar ? 'Aprobación del evaluador registrada.' : 'Solicitud rechazada y notificada al estudiante.' };
+      },
+      error: err => { t.guardando = false; t.error = this.extraerError(err); }
     });
   }
 

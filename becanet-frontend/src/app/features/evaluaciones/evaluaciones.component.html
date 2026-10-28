@@ -81,11 +81,11 @@
            [class.sacudir]="t.sacudir"
            [class.destacada]="t.destacada"
            [class.arrastrando]="arrastrandoId === t.idSolicitud"
-           [class.bloqueada]="resuelta(t)">
+           [class.bloqueada]="bloqueada(t)">
 
     <!-- Se arrastra desde el encabezado -->
     <header class="kcard-head"
-            [attr.draggable]="!resuelta(t) && !t.guardando"
+            [attr.draggable]="!bloqueada(t) && !t.guardando"
             (dragstart)="iniciarArrastre($event, t)"
             (dragend)="finArrastre()"
             title="Arrastra para cambiar de columna">
@@ -93,6 +93,7 @@
       <div class="kcard-titulo">
         <strong>{{ t.nombreEstudiante }}</strong>
         <small>{{ t.tituloConvocatoria }} · #{{ t.idSolicitud }}</small>
+        <small>Monto solicitado: Q{{ t.montoSolicitado | number:'1.2-2' }}</small>
       </div>
       <span class="badge badge-green" *ngIf="t.estadoSolicitud === 'APROBADA'">Aprobada</span>
       <span class="badge badge-red" *ngIf="t.estadoSolicitud === 'RECHAZADA'">Rechazada</span>
@@ -117,11 +118,11 @@
           <input type="range" min="0" max="100" step="1"
                  [ngModel]="t.puntajeEdit ?? 0"
                  (ngModelChange)="t.puntajeEdit = $event; guardarBorrador(t)"
-                 [disabled]="resuelta(t) || t.guardando" />
+                 [disabled]="bloqueada(t) || t.guardando" />
           <input class="input num" type="number" min="0" max="100" placeholder="—"
                  [ngModel]="t.puntajeEdit"
                  (ngModelChange)="t.puntajeEdit = $event; guardarBorrador(t)"
-                 [disabled]="resuelta(t) || t.guardando" />
+                 [disabled]="bloqueada(t) || t.guardando" />
         </div>
       </div>
 
@@ -130,7 +131,7 @@
                 placeholder="Justifica tu puntaje..."
                 [ngModel]="t.obsEdit"
                 (ngModelChange)="t.obsEdit = $event; guardarBorrador(t)"
-                [disabled]="resuelta(t) || t.guardando"></textarea>
+                [disabled]="bloqueada(t) || t.guardando"></textarea>
     </div>
 
     <p class="error-linea" *ngIf="t.error">{{ t.error }}</p>
@@ -142,16 +143,24 @@
         </button>
       </ng-container>
       <ng-container *ngIf="t.estadoRevision === 'REVISADO'">
-        <button class="btn btn-success btn-sm" (click)="marcarRevisada(t)" [disabled]="t.guardando">
+        <button class="btn btn-success btn-sm" (click)="marcarRevisada(t)" [disabled]="t.guardando || bloqueada(t)">
           {{ t.guardando ? 'Guardando...' : 'Guardar cambios' }}
         </button>
-        <button class="btn btn-ghost btn-sm" (click)="moverA(t, 'EN_REVISION')" [disabled]="t.guardando">
+        <button class="btn btn-ghost btn-sm" (click)="moverA(t, 'EN_REVISION')" [disabled]="t.guardando || bloqueada(t)">
           ← Volver a revisión
         </button>
+        <ng-container *ngIf="t.montoSolicitado > 10000 && !t.decisionEvaluadorRegistrada && !resuelta(t)">
+          <button class="btn btn-success btn-sm" (click)="decidirAprobacion(t, true)" [disabled]="t.guardando">Aprobar solicitud</button>
+          <button class="btn btn-danger btn-sm" (click)="decidirAprobacion(t, false)" [disabled]="t.guardando">Rechazar solicitud</button>
+        </ng-container>
+        <span class="muted small" *ngIf="t.montoSolicitado > 10000 && t.decisionEvaluadorRegistrada">
+          Decisión del evaluador: {{ t.aprobadaPorEvaluador ? 'Aprobada' : 'Rechazada' }}
+        </span>
       </ng-container>
     </footer>
     <p class="muted small bloqueo" *ngIf="resuelta(t)">
-      Coordinación ya resolvió esta solicitud; la evaluación quedó bloqueada.
+      {{ t.estadoSolicitud === 'RECHAZADA' && t.decisionEvaluadorRegistrada ? 'El evaluador rechazó esta solicitud.' : 'Coordinación ya resolvió esta solicitud.' }} La evaluación quedó bloqueada.
     </p>
+    <p class="muted small bloqueo" *ngIf="!resuelta(t) && t.montoSolicitado > 10000 && t.decisionEvaluadorRegistrada">Tu decisión quedó registrada; no se puede reabrir ni modificar la revisión.</p>
   </article>
 </ng-template>

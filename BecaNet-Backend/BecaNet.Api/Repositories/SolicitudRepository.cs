@@ -30,6 +30,7 @@ public class SolicitudRepository : ISolicitudRepository
             .Include(s => s.Estudiante)
             .Include(s => s.Convocatoria)
             .Include(s => s.Documentos)
+            .Include(s => s.Aprobaciones)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 
@@ -38,6 +39,7 @@ public class SolicitudRepository : ISolicitudRepository
         return await _context.Solicitudes
             .Include(s => s.Convocatoria)
             .Include(s => s.Documentos)
+            .Include(s => s.Aprobaciones)
             .Where(s => s.IdEstudiante == idEstudiante)
             .OrderByDescending(s => s.FechaCreacion)
             .ToListAsync();

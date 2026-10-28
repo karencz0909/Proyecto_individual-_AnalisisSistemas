@@ -151,7 +151,7 @@ public class SolicitudServiceTests
 
         // Act + Assert
         var excepcion = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.ResolverAsync(10, dto));
+            () => service.ResolverAsync(10, dto, 90));
 
         Assert.Equal("Debes indicar un motivo para rechazar la solicitud.", excepcion.Message);
 
@@ -189,11 +189,13 @@ public class SolicitudServiceTests
         var dto = new ResolverSolicitudDTO { Aprobar = true, Motivo = "Cumple todos los requisitos" };
 
         // Act
-        var resultado = await service.ResolverAsync(20, dto);
+        var resultado = await service.ResolverAsync(20, dto, 91);
 
         // Assert
         Assert.Equal(EstadoSolicitud.Aprobada, resultado.Estado);
         Assert.NotNull(resultado.FechaResolucion);
-        solicitudRepoMock.Verify(r => r.ActualizarAsync(It.IsAny<Solicitud>()), Times.Once);
+        Assert.Single(context.Aprobaciones);
+        Assert.Single(context.RegistrosAuditoria);
+        Assert.Single(context.Notificaciones);
     }
 }

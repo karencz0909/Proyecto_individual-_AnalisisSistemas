@@ -7,6 +7,7 @@ import {
   CrearMiSolicitud,
   CrearSolicitud,
   ResolverSolicitud,
+  NotificacionSolicitud,
   Solicitud
 } from '../models/solicitud.model';
 
@@ -25,6 +26,10 @@ export class SolicitudService {
     return this.http.get<Solicitud[]>(`${this.baseUrl}/mias`);
   }
 
+  obtenerNotificacionesMias(): Observable<NotificacionSolicitud[]> {
+    return this.http.get<NotificacionSolicitud[]>(`${environment.apiUrl}/notificaciones/mias`);
+  }
+
   cancelar(id: number, dto: CancelarSolicitud): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/${id}/cancelar`, dto);
   }
@@ -32,6 +37,10 @@ export class SolicitudService {
   // --- Coordinador ---
   resolver(id: number, dto: ResolverSolicitud): Observable<Solicitud> {
     return this.http.put<Solicitud>(`${this.baseUrl}/${id}/resolver`, dto);
+  }
+
+  aprobarComoEvaluador(id: number, dto: ResolverSolicitud): Observable<Solicitud> {
+    return this.http.post<Solicitud>(`${this.baseUrl}/${id}/aprobacion-evaluador`, dto);
   }
 
   // --- Versiones con id explícito (se conservan por compatibilidad) ---

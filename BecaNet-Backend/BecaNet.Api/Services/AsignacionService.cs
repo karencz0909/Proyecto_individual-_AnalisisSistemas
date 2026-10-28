@@ -16,8 +16,8 @@ public interface IAsignacionService
     // Coordinador
     Task<List<SolicitudCoordinadorDTO>> ObtenerSolicitudesCoordinadorAsync();
     Task<List<EvaluadorOpcionDTO>> ObtenerEvaluadoresAsync();
-    Task<ResultadoDistribucionDTO> DistribuirAsync(DistribuirDTO dto);
-    Task<SolicitudCoordinadorDTO> AsignarManualAsync(int idSolicitud, int idEvaluador);
+    Task<ResultadoDistribucionDTO> DistribuirAsync(DistribuirDTO dto, int idCoordinador);
+    Task<SolicitudCoordinadorDTO> AsignarManualAsync(int idSolicitud, int idEvaluador, int idCoordinador);
 }
 
 /// <summary>
@@ -46,6 +46,7 @@ public class AsignacionService : IAsignacionService
             .Include(s => s.Convocatoria)
             .Include(s => s.Documentos)
             .Include(s => s.Evaluaciones)
+            .Include(s => s.Aprobaciones)
             .Where(s => s.IdEvaluadorAsignado == idEvaluador && s.Estado != EstadoSolicitud.Cancelada)
             .OrderBy(s => s.FechaAsignacion)
             .ToListAsync();
@@ -60,8 +61,12 @@ public class AsignacionService : IAsignacionService
 
         if (solicitud.Estado != EstadoSolicitud.EnProceso && solicitud.Estado != EstadoSolicitud.Evaluada)
             throw new InvalidOperationException("Esta solicitud ya fue resuelta; no se puede modificar la evaluación.");
+        if (solicitud.MontoSolicitado > 10_000 && solicitud.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador))
+            throw new InvalidOperationException("La decisión del evaluador ya fue registrada y la revisión quedó cerrada.");
 
         var evaluacion = solicitud.Evaluaciones.FirstOrDefault(e => e.IdEvaluador == idEvaluador);
+        var puntajeAnterior = evaluacion?.Puntaje;
+        var observacionesAnteriores = evaluacion?.Observaciones;
         if (evaluacion is null)
         {
             evaluacion = new Evaluacion { IdSolicitud = solicitud.Id, IdEvaluador = idEvaluador };
@@ -76,10 +81,11 @@ public class AsignacionService : IAsignacionService
         solicitud.EstadoRevision = EstadosRevision.Revisado;
         solicitud.Estado = EstadoSolicitud.Evaluada;
 
-        await _context.SaveChangesAsync();
-
+        _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = idSolicitud, IdUsuario = idEvaluador, RolUsuario = TiposUsuario.Evaluador, Operacion = "MODIFICACION_REVISION", Detalle = $"Puntaje: {puntajeAnterior?.ToString("N2") ?? "sin valor"} -> {dto.Puntaje:N2}; observaciones: [{Recortar(observacionesAnteriores)}] -> [{Recortar(dto.Observaciones.Trim())}]", FechaHoraUtc = DateTime.UtcNow });
         if (estadoAnterior != solicitud.Estado)
-            _notificador.NotificarCambioEstado(solicitud, estadoAnterior);
+            _context.Notificaciones.Add(new NotificacionSolicitud { IdSolicitud = idSolicitud, IdEstudiante = solicitud.IdEstudiante, EstadoAnterior = estadoAnterior, EstadoNuevo = solicitud.Estado });
+        await _context.SaveChangesAsync();
+        if (estadoAnterior != solicitud.Estado) _notificador.NotificarCambioEstado(solicitud, estadoAnterior);
 
         return MapearAsignacion(solicitud, idEvaluador);
     }
@@ -93,15 +99,20 @@ public class AsignacionService : IAsignacionService
             || solicitud.Estado == EstadoSolicitud.Rechazada
             || solicitud.Estado == EstadoSolicitud.Cancelada)
             throw new InvalidOperationException("La solicitud ya fue resuelta; no se puede volver a revisión.");
+        if (solicitud.MontoSolicitado > 10_000 && solicitud.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador))
+            throw new InvalidOperationException("La decisión del evaluador ya fue registrada y no se puede reabrir la revisión.");
 
         var estadoAnterior = solicitud.Estado;
         solicitud.EstadoRevision = EstadosRevision.EnRevision;
         solicitud.Estado = EstadoSolicitud.EnProceso;
 
-        await _context.SaveChangesAsync();
-
         if (estadoAnterior != solicitud.Estado)
-            _notificador.NotificarCambioEstado(solicitud, estadoAnterior);
+        {
+            _context.Notificaciones.Add(new NotificacionSolicitud { IdSolicitud = idSolicitud, IdEstudiante = solicitud.IdEstudiante, EstadoAnterior = estadoAnterior, EstadoNuevo = solicitud.Estado });
+            _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = idSolicitud, IdUsuario = idEvaluador, RolUsuario = TiposUsuario.Evaluador, Operacion = "REAPERTURA_REVISION", Detalle = $"Estado: {estadoAnterior} -> {solicitud.Estado}", FechaHoraUtc = DateTime.UtcNow });
+        }
+        await _context.SaveChangesAsync();
+        if (estadoAnterior != solicitud.Estado) _notificador.NotificarCambioEstado(solicitud, estadoAnterior);
 
         return MapearAsignacion(solicitud, idEvaluador);
     }
@@ -116,6 +127,7 @@ public class AsignacionService : IAsignacionService
             .Include(s => s.Convocatoria)
             .Include(s => s.Documentos)
             .Include(s => s.Evaluaciones)
+            .Include(s => s.Aprobaciones)
             .Include(s => s.EvaluadorAsignado)
             .OrderByDescending(s => s.FechaCreacion)
             .ToListAsync();
@@ -142,7 +154,7 @@ public class AsignacionService : IAsignacionService
     /// dándole siempre la siguiente al que tenga menos carga. Con 10 solicitudes y 5 evaluadores
     /// queda 2 para cada uno.
     /// </summary>
-    public async Task<ResultadoDistribucionDTO> DistribuirAsync(DistribuirDTO dto)
+    public async Task<ResultadoDistribucionDTO> DistribuirAsync(DistribuirDTO dto, int idCoordinador)
     {
         List<EvaluadorComite> pool;
 
@@ -182,12 +194,23 @@ public class AsignacionService : IAsignacionService
         foreach (var solicitud in aptas)
         {
             var elegido = pool.OrderBy(e => cargaActual[e.Id]).ThenBy(e => e.Id).First();
+            var evaluadorAnterior = solicitud.IdEvaluadorAsignado;
 
             solicitud.IdEvaluadorAsignado = elegido.Id;
             solicitud.EstadoRevision = EstadosRevision.EnRevision;
             solicitud.FechaAsignacion = DateTime.Now;
             if (dto.IdComite.HasValue)
                 solicitud.IdComite = dto.IdComite;
+
+            _context.RegistrosAuditoria.Add(new RegistroAuditoria
+            {
+                IdSolicitud = solicitud.Id,
+                IdUsuario = idCoordinador,
+                RolUsuario = TiposUsuario.Coordinador,
+                Operacion = "ASIGNACION_EVALUADOR",
+                Detalle = $"Evaluador asignado: {evaluadorAnterior?.ToString() ?? "sin asignar"} -> {elegido.Id}.",
+                FechaHoraUtc = DateTime.UtcNow
+            });
 
             cargaActual[elegido.Id]++;
         }
@@ -208,7 +231,7 @@ public class AsignacionService : IAsignacionService
         };
     }
 
-    public async Task<SolicitudCoordinadorDTO> AsignarManualAsync(int idSolicitud, int idEvaluador)
+    public async Task<SolicitudCoordinadorDTO> AsignarManualAsync(int idSolicitud, int idEvaluador, int idCoordinador)
     {
         var solicitud = await CargarSolicitudAsync(idSolicitud);
 
@@ -224,11 +247,21 @@ public class AsignacionService : IAsignacionService
         var evaluador = await _context.Evaluadores.FindAsync(idEvaluador)
             ?? throw new InvalidOperationException("El evaluador no existe.");
 
+        var evaluadorAnterior = solicitud.IdEvaluadorAsignado;
         solicitud.IdEvaluadorAsignado = evaluador.Id;
         solicitud.EvaluadorAsignado = evaluador;
         solicitud.EstadoRevision = EstadosRevision.EnRevision;
         solicitud.FechaAsignacion = DateTime.Now;
 
+        _context.RegistrosAuditoria.Add(new RegistroAuditoria
+        {
+            IdSolicitud = idSolicitud,
+            IdUsuario = idCoordinador,
+            RolUsuario = TiposUsuario.Coordinador,
+            Operacion = "ASIGNACION_EVALUADOR",
+            Detalle = $"Evaluador asignado: {evaluadorAnterior?.ToString() ?? "sin asignar"} -> {evaluador.Id}.",
+            FechaHoraUtc = DateTime.UtcNow
+        });
         await _context.SaveChangesAsync();
 
         return MapearCoordinador(solicitud);
@@ -244,6 +277,7 @@ public class AsignacionService : IAsignacionService
             .Include(s => s.Convocatoria)
             .Include(s => s.Documentos)
             .Include(s => s.Evaluaciones)
+            .Include(s => s.Aprobaciones)
             .Include(s => s.EvaluadorAsignado)
             .FirstOrDefaultAsync(s => s.Id == idSolicitud);
 
@@ -274,6 +308,8 @@ public class AsignacionService : IAsignacionService
         UrlArchivo = d.UrlArchivo
     };
 
+    private static string Recortar(string? texto) => string.IsNullOrEmpty(texto) ? "(vacío)" : texto.Length <= 650 ? texto : texto[..650] + "…";
+
     private static AsignacionEvaluadorDTO MapearAsignacion(Solicitud s, int idEvaluador)
     {
         var evaluacion = s.Evaluaciones.FirstOrDefault(e => e.IdEvaluador == idEvaluador);
@@ -284,6 +320,9 @@ public class AsignacionService : IAsignacionService
             NombreEstudiante = s.Estudiante?.Nombre ?? "Estudiante",
             TituloConvocatoria = s.Convocatoria?.Titulo ?? "Convocatoria",
             Motivo = s.Motivo,
+            MontoSolicitado = s.MontoSolicitado,
+            DecisionEvaluadorRegistrada = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador),
+            AprobadaPorEvaluador = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador && a.Aprobada),
             EstadoSolicitud = s.Estado,
             EstadoRevision = s.EstadoRevision,
             FechaAsignacion = s.FechaAsignacion,
@@ -307,6 +346,9 @@ public class AsignacionService : IAsignacionService
             CorreoEstudiante = s.Estudiante?.Correo ?? string.Empty,
             TituloConvocatoria = s.Convocatoria?.Titulo ?? "Convocatoria",
             Motivo = s.Motivo,
+            MontoSolicitado = s.MontoSolicitado,
+            AprobadaPorEvaluador = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador && a.Aprobada),
+            AprobadaPorCoordinador = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Coordinador && a.Aprobada),
             Estado = s.Estado,
             EstadoRevision = s.EstadoRevision,
             IdEvaluadorAsignado = s.IdEvaluadorAsignado,
