@@ -35,17 +35,34 @@ BEGIN
         CONSTRAINT FK_AprobacionSolicitud_Solicitud FOREIGN KEY (IdSolicitud)
           REFERENCES dbo.' + QUOTENAME(@TablaSolicitud) + N'(Id),
         CONSTRAINT UQ_AprobacionSolicitud_Tipo UNIQUE (IdSolicitud, Tipo),
-        CONSTRAINT CK_AprobacionSolicitud_Tipo CHECK (Tipo IN (''EVALUADOR'', ''COORDINADOR''))
+        CONSTRAINT CK_AprobacionSolicitud_Tipo CHECK (Tipo IN (''EVALUADOR'', ''COORDINADOR'', ''COORD_PRE'', ''COORD_FINAL''))
     );';
     EXEC sys.sp_executesql @sqlAprobacion;
 END;
+
+-- Retira cualquier versión anterior de la restricción; en algunas bases SQL Server
+-- le asignó un nombre automático y por eso no bastaba con buscar el nombre conocido.
+DECLARE @sqlEliminarChecks NVARCHAR(MAX) = N'';
+SELECT @sqlEliminarChecks = @sqlEliminarChecks
+    + N'ALTER TABLE dbo.AprobacionSolicitud DROP CONSTRAINT ' + QUOTENAME(cc.name) + N';'
+FROM sys.check_constraints AS cc
+WHERE cc.parent_object_id = OBJECT_ID(N'dbo.AprobacionSolicitud')
+  AND cc.definition LIKE N'%Tipo%';
+IF LEN(@sqlEliminarChecks) > 0
+    EXEC sys.sp_executesql @sqlEliminarChecks;
+
+-- Permite distinguir la preaprobación de la autorización final del segundo coordinador.
+ALTER TABLE dbo.AprobacionSolicitud WITH CHECK ADD CONSTRAINT CK_AprobacionSolicitud_Tipo
+    CHECK (Tipo IN ('EVALUADOR', 'COORDINADOR', 'COORD_PRE', 'COORD_FINAL'));
 
 IF OBJECT_ID('dbo.RegistroAuditoria', 'U') IS NULL
 BEGIN
     DECLARE @sqlAuditoria NVARCHAR(MAX) = N'
     CREATE TABLE dbo.RegistroAuditoria (
         Id BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_RegistroAuditoria PRIMARY KEY,
-        IdSolicitud INT NOT NULL,
+        IdSolicitud INT NULL,
+        Entidad NVARCHAR(80) NOT NULL CONSTRAINT DF_RegistroAuditoria_Entidad DEFAULT (''SOLICITUD''),
+        IdEntidad NVARCHAR(100) NULL,
         IdUsuario INT NOT NULL,
         RolUsuario VARCHAR(30) NOT NULL,
         Operacion VARCHAR(80) NOT NULL,
@@ -75,6 +92,31 @@ BEGIN
     CREATE INDEX IX_NotificacionSolicitud_Estudiante_Fecha ON dbo.NotificacionSolicitud(IdEstudiante, FechaHoraUtc);';
     EXEC sys.sp_executesql @sqlNotificacion;
 END;
+
+-- La auditoría también cubre cambios relevantes fuera de una solicitud.
+IF COL_LENGTH('dbo.RegistroAuditoria', 'Entidad') IS NULL
+    ALTER TABLE dbo.RegistroAuditoria ADD Entidad NVARCHAR(80) NOT NULL
+        CONSTRAINT DF_RegistroAuditoria_Entidad DEFAULT ('SOLICITUD');
+IF COL_LENGTH('dbo.RegistroAuditoria', 'IdEntidad') IS NULL
+    ALTER TABLE dbo.RegistroAuditoria ADD IdEntidad NVARCHAR(100) NULL;
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.RegistroAuditoria') AND name = 'IdSolicitud' AND is_nullable = 0)
+BEGIN
+    DECLARE @FkAuditoria SYSNAME;
+    SELECT @FkAuditoria = fk.name FROM sys.foreign_keys fk
+    JOIN sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+    JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+    WHERE fk.parent_object_id = OBJECT_ID('dbo.RegistroAuditoria') AND c.name = 'IdSolicitud';
+    IF @FkAuditoria IS NOT NULL
+    BEGIN
+        DECLARE @SqlEliminarFk NVARCHAR(MAX) = N'ALTER TABLE dbo.RegistroAuditoria DROP CONSTRAINT ' + QUOTENAME(@FkAuditoria);
+        EXEC sys.sp_executesql @SqlEliminarFk;
+    END;
+    ALTER TABLE dbo.RegistroAuditoria ALTER COLUMN IdSolicitud INT NULL;
+    DECLARE @FkSql NVARCHAR(MAX) = N'ALTER TABLE dbo.RegistroAuditoria WITH CHECK ADD CONSTRAINT FK_RegistroAuditoria_Solicitud FOREIGN KEY (IdSolicitud) REFERENCES dbo.' + QUOTENAME(@TablaSolicitud) + N'(Id);';
+    EXEC sys.sp_executesql @FkSql;
+END;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.RegistroAuditoria') AND name = 'IX_RegistroAuditoria_Entidad_Fecha')
+    CREATE INDEX IX_RegistroAuditoria_Entidad_Fecha ON dbo.RegistroAuditoria(Entidad, IdEntidad, FechaHoraUtc);
 GO
 
 CREATE OR ALTER TRIGGER dbo.TR_RegistroAuditoria_Inmutable

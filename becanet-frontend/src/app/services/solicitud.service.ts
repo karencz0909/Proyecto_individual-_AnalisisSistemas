@@ -39,10 +39,6 @@ export class SolicitudService {
     return this.http.put<Solicitud>(`${this.baseUrl}/${id}/resolver`, dto);
   }
 
-  aprobarComoEvaluador(id: number, dto: ResolverSolicitud): Observable<Solicitud> {
-    return this.http.post<Solicitud>(`${this.baseUrl}/${id}/aprobacion-evaluador`, dto);
-  }
-
   // --- Versiones con id explícito (se conservan por compatibilidad) ---
   crear(dto: CrearSolicitud): Observable<Solicitud> {
     return this.http.post<Solicitud>(this.baseUrl, dto);

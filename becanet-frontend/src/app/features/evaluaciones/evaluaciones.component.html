@@ -149,18 +149,12 @@
         <button class="btn btn-ghost btn-sm" (click)="moverA(t, 'EN_REVISION')" [disabled]="t.guardando || bloqueada(t)">
           ← Volver a revisión
         </button>
-        <ng-container *ngIf="t.montoSolicitado > 10000 && !t.decisionEvaluadorRegistrada && !resuelta(t)">
-          <button class="btn btn-success btn-sm" (click)="decidirAprobacion(t, true)" [disabled]="t.guardando">Aprobar solicitud</button>
-          <button class="btn btn-danger btn-sm" (click)="decidirAprobacion(t, false)" [disabled]="t.guardando">Rechazar solicitud</button>
-        </ng-container>
-        <span class="muted small" *ngIf="t.montoSolicitado > 10000 && t.decisionEvaluadorRegistrada">
-          Decisión del evaluador: {{ t.aprobadaPorEvaluador ? 'Aprobada' : 'Rechazada' }}
-        </span>
       </ng-container>
     </footer>
     <p class="muted small bloqueo" *ngIf="resuelta(t)">
-      {{ t.estadoSolicitud === 'RECHAZADA' && t.decisionEvaluadorRegistrada ? 'El evaluador rechazó esta solicitud.' : 'Coordinación ya resolvió esta solicitud.' }} La evaluación quedó bloqueada.
+      Coordinación ya resolvió esta solicitud. La evaluación quedó bloqueada.
     </p>
-    <p class="muted small bloqueo" *ngIf="!resuelta(t) && t.montoSolicitado > 10000 && t.decisionEvaluadorRegistrada">Tu decisión quedó registrada; no se puede reabrir ni modificar la revisión.</p>
+    <p class="muted small bloqueo" *ngIf="!resuelta(t) && t.estadoRevision === 'REVISADO' && t.montoSolicitado > 10000 && !t.preaprobadaPorCoordinador">Evaluación registrada y enviada a coordinación. La solicitud requiere preaprobación de un coordinador y autorización de otro.</p>
+    <p class="muted small bloqueo" *ngIf="!resuelta(t) && t.preaprobadaPorCoordinador">La solicitud está preaprobada y espera la autorización final de otro coordinador. La revisión quedó bloqueada.</p>
   </article>
 </ng-template>

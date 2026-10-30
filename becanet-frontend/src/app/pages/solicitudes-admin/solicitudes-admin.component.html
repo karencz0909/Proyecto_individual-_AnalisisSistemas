@@ -111,7 +111,7 @@
 
           <div class="celda" data-etiqueta="Convocatoria">
             <span>{{ s.tituloConvocatoria }}</span>
-            <small>#{{ s.idSolicitud }} · {{ s.fechaCreacion | date: 'dd/MM/yyyy' }}</small>
+            <small>#{{ s.idSolicitud }} · {{ s.fechaCreacion | date: 'dd/MM/yyyy' }} · {{ s.fechaCreacion | date: 'HH:mm' }}</small>
           </div>
 
           <div class="celda" data-etiqueta="Estado">
@@ -148,20 +148,38 @@
           </div>
         </div>
 
-        <!-- Decisión final: solo cuando el evaluador ya calificó -->
+        <!-- Decisión de coordinación cuando la evaluación ya terminó -->
         <div class="decision" *ngIf="etapa(s) === 'EVALUADA'">
-          <span class="muted small">El evaluador terminó. Monto solicitado: Q{{ s.montoSolicitado | number:'1.2-2' }}.</span>
-          <span class="muted small" *ngIf="s.montoSolicitado > 10000">Aprobación del evaluador: {{ s.aprobadaPorEvaluador ? 'registrada' : 'pendiente' }}.</span>
+          <div class="decision-resumen">
+            <span class="muted small">Evaluación completada. Monto solicitado: Q{{ s.montoSolicitado | number:'1.2-2' }}.</span>
+            <span class="muted small" *ngIf="s.montoSolicitado > 10000">
+              Evaluación: {{ s.estadoRevision === 'REVISADO' ? 'completada' : 'pendiente' }} ·
+              Preaprobación: {{ s.preaprobadaPorCoordinador ? 'registrada' : 'pendiente' }} ·
+              Coordinador final: {{ s.aprobadaPorCoordinador ? 'aprobó' : 'pendiente' }}.
+            </span>
+            <span class="decision-espera muted small" *ngIf="s.montoSolicitado > 10000 && s.estadoRevision !== 'REVISADO'">
+              Espera a que el evaluador mueva la solicitud a «Revisado».
+            </span>
+            <span class="decision-espera muted small" *ngIf="s.montoSolicitado > 10000 && s.preaprobadaPorCoordinador && !esPreaprobadorActual(s)">
+              Preaprobación registrada; esperando la aprobación final de otro coordinador.
+            </span>
+          </div>
 
           <ng-container *ngIf="confirmandoAprobar !== s.idSolicitud && rechazando !== s.idSolicitud">
-            <button class="btn btn-success btn-sm" (click)="pedirAprobar(s.idSolicitud)" [disabled]="s.montoSolicitado > 10000 && !s.aprobadaPorEvaluador">Aprobar</button>
-            <button class="btn btn-danger btn-sm" (click)="pedirRechazo(s.idSolicitud)">Rechazar</button>
+            <button class="btn btn-success btn-sm" [class.preaprobacion-registrada]="esPreaprobadorActual(s)" (click)="pedirAprobar(s.idSolicitud)" [disabled]="esPreaprobadorActual(s) || (s.montoSolicitado > 10000 && s.estadoRevision !== 'REVISADO')">
+              {{ s.montoSolicitado > 10000 ? (s.preaprobadaPorCoordinador ? 'Aprobar definitivamente' : 'Preaprobar') : 'Aprobar' }}
+            </button>
+            <button class="btn btn-danger btn-sm" (click)="pedirRechazo(s.idSolicitud)" [disabled]="esPreaprobadorActual(s) || (s.montoSolicitado > 10000 && s.estadoRevision !== 'REVISADO')">Rechazar</button>
           </ng-container>
 
+          <span class="preaprobacion-espera" *ngIf="s.montoSolicitado > 10000 && esPreaprobadorActual(s)">
+            Preaprobada por ti. Está en espera de otro coordinador para la autorización final.
+          </span>
+
           <div class="confirmar" *ngIf="confirmandoAprobar === s.idSolicitud">
-            <span>¿Aprobar la beca de <strong>{{ s.nombreEstudiante }}</strong>?</span>
+            <span>{{ s.montoSolicitado > 10000 && !s.preaprobadaPorCoordinador ? '¿Preaprobar' : s.montoSolicitado > 10000 ? '¿Dar la aprobación final a' : '¿Aprobar' }} la beca de <strong>{{ s.nombreEstudiante }}</strong>?</span>
             <button class="btn btn-success btn-sm" (click)="confirmarAprobar(s)" [disabled]="procesando === s.idSolicitud">
-              {{ procesando === s.idSolicitud ? 'Guardando...' : 'Sí, aprobar' }}
+              {{ procesando === s.idSolicitud ? 'Guardando...' : s.montoSolicitado > 10000 && !s.preaprobadaPorCoordinador ? 'Sí, preaprobar' : s.montoSolicitado > 10000 ? 'Sí, aprobar definitivamente' : 'Sí, aprobar' }}
             </button>
             <button class="btn btn-ghost btn-sm" (click)="cancelarAccion()">Cancelar</button>
           </div>
@@ -184,7 +202,7 @@
           <div>
             <span class="muted small">Monto solicitado</span>
             <p>Q{{ s.montoSolicitado | number:'1.2-2' }}</p>
-            <p *ngIf="s.montoSolicitado > 10000">Responsable de evaluación: {{ s.aprobadaPorEvaluador ? 'aprobó' : 'pendiente' }} · Coordinación: {{ s.aprobadaPorCoordinador ? 'autorizó' : 'pendiente' }}</p>
+            <p *ngIf="s.montoSolicitado > 10000">Evaluación: {{ s.estadoRevision === 'REVISADO' ? 'completada' : 'pendiente' }} · Preaprobación de un coordinador: {{ s.preaprobadaPorCoordinador ? 'registrada' : 'pendiente' }} · Aprobación final de otro coordinador: {{ s.aprobadaPorCoordinador ? 'registrada' : 'pendiente' }}</p>
           </div>
           <div>
             <span class="muted small">Motivo del estudiante</span>

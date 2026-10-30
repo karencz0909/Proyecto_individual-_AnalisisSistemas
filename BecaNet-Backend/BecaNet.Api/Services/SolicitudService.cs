@@ -14,7 +14,6 @@ public interface ISolicitudService
     Task<List<SolicitudDTO>> ObtenerPorEstudianteAsync(int idEstudiante);
     Task CancelarSolicitudAsync(int id, CancelarSolicitudDTO dto, int idUsuario);
     Task<SolicitudDTO> ResolverAsync(int id, ResolverSolicitudDTO dto, int idUsuario);
-    Task<SolicitudDTO> AprobarComoEvaluadorAsync(int id, RegistrarAprobacionDTO dto, int idEvaluador);
 }
 
 public class SolicitudService : ISolicitudService
@@ -85,11 +84,11 @@ public class SolicitudService : ISolicitudService
             throw new InvalidOperationException("Solo se puede cancelar la solicitud mientras la convocatoria esté ABIERTA.");
 
         var estadoAnterior = solicitud.Estado;
-        var observacionesAnteriores = solicitud.Observaciones;
+        var cambioObservaciones = !string.Equals(solicitud.Observaciones, dto.Motivo ?? solicitud.Observaciones, StringComparison.Ordinal);
         solicitud.Estado = EstadoSolicitud.Cancelada;
         solicitud.Observaciones = dto.Motivo ?? solicitud.Observaciones;
         _context.Notificaciones.Add(new NotificacionSolicitud { IdSolicitud = id, IdEstudiante = solicitud.IdEstudiante, EstadoAnterior = estadoAnterior, EstadoNuevo = solicitud.Estado });
-        _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = id, IdUsuario = idUsuario, RolUsuario = TiposUsuario.Estudiante, Operacion = "CANCELACION_SOLICITUD", Detalle = $"Estado: {estadoAnterior} -> {solicitud.Estado}; Observaciones: [{Recortar(observacionesAnteriores)}] -> [{Recortar(solicitud.Observaciones)}]", FechaHoraUtc = DateTime.UtcNow });
+        _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = id, IdUsuario = idUsuario, RolUsuario = TiposUsuario.Estudiante, Operacion = "CANCELACION_SOLICITUD", Detalle = $"Estado: {estadoAnterior} -> {solicitud.Estado}; Observaciones: {(cambioObservaciones ? "modificadas (contenido omitido por seguridad)" : "sin cambios")}", FechaHoraUtc = DateTime.UtcNow });
         await _context.SaveChangesAsync();
         try { _notificador.NotificarCambioEstado(solicitud, estadoAnterior); } catch { /* No se revierte el estado si falla un canal. */ }
     }
@@ -106,57 +105,99 @@ public class SolicitudService : ISolicitudService
         if (!dto.Aprobar && string.IsNullOrWhiteSpace(dto.Motivo))
             throw new InvalidOperationException("Debes indicar un motivo para rechazar la solicitud.");
 
+        var ahora = DateTime.UtcNow;
+        var estadoAnterior = solicitud.Estado;
+
         if (solicitud.MontoSolicitado > 10_000)
         {
-            var decisionEvaluador = await _context.Aprobaciones.SingleOrDefaultAsync(a =>
-                a.IdSolicitud == id && a.Tipo == TipoAprobacionSolicitud.Evaluador);
-            if (dto.Aprobar && decisionEvaluador is null)
-                throw new InvalidOperationException("El evaluador asignado debe registrar su decisión antes de la autorización del coordinador.");
-            if (decisionEvaluador is not null && !decisionEvaluador.Aprobada && dto.Aprobar)
-                throw new InvalidOperationException("La solicitud fue rechazada por el evaluador y no puede autorizarse.");
-            if (decisionEvaluador?.IdUsuario == idUsuario)
-                throw new InvalidOperationException("Una misma persona no puede realizar ambas aprobaciones.");
+            if (solicitud.EstadoRevision != EstadosRevision.Revisado)
+                throw new InvalidOperationException("El evaluador debe completar la revisión y mover la solicitud a «Revisado» antes de que coordinación decida.");
+
+            var preaprobacion = await _context.Aprobaciones.SingleOrDefaultAsync(a =>
+                a.IdSolicitud == id && a.Tipo == TipoAprobacionSolicitud.CoordinadorPreaprobacion);
+            // Las versiones anteriores guardaban la primera decisión de coordinación
+            // como COORDINADOR. Si la solicitud aún sigue pendiente, esa decisión debe
+            // contar como preaprobación y permitir que otro coordinador finalice.
+            preaprobacion ??= await _context.Aprobaciones.SingleOrDefaultAsync(a =>
+                a.IdSolicitud == id && a.Tipo == TipoAprobacionSolicitud.Coordinador);
+            var decisionFinal = await _context.Aprobaciones.FirstOrDefaultAsync(a =>
+                a.IdSolicitud == id && a.Tipo == TipoAprobacionSolicitud.CoordinadorFinal);
+            if (decisionFinal is not null)
+                throw new InvalidOperationException("La decisión final de coordinación ya fue registrada.");
+
+            var tipoDecision = preaprobacion is null
+                ? TipoAprobacionSolicitud.CoordinadorPreaprobacion
+                : TipoAprobacionSolicitud.CoordinadorFinal;
+            var correoCoordinador = await _context.Coordinadores.AsNoTracking()
+                .Where(c => c.Id == idUsuario).Select(c => c.Correo).SingleOrDefaultAsync();
+            if (string.IsNullOrWhiteSpace(correoCoordinador))
+                throw new InvalidOperationException("No se pudo verificar la identidad del coordinador. Contacta a soporte.");
+
+            if (preaprobacion is not null)
+            {
+                if (!preaprobacion.Aprobada)
+                    throw new InvalidOperationException("La solicitud fue rechazada durante la preaprobación.");
+                var correoPrimerCoordinador = await _context.Coordinadores.AsNoTracking()
+                    .Where(c => c.Id == preaprobacion.IdUsuario).Select(c => c.Correo).SingleOrDefaultAsync();
+                if (string.IsNullOrWhiteSpace(correoPrimerCoordinador))
+                    throw new InvalidOperationException("No se pudo verificar la identidad del coordinador que preaprobó.");
+                if (preaprobacion.IdUsuario == idUsuario
+                    || string.Equals(correoPrimerCoordinador.Trim(), correoCoordinador.Trim(), StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("La aprobación final debe realizarla otro coordinador distinto al que preaprobó.");
+            }
+
+            var decisionCoordinador = new AprobacionSolicitud
+            {
+                IdSolicitud = id, Tipo = tipoDecision, IdUsuario = idUsuario,
+                RolUsuario = TiposUsuario.Coordinador, Aprobada = dto.Aprobar,
+                Motivo = dto.Motivo, FechaHoraUtc = ahora
+            };
+            solicitud.Aprobaciones.Add(decisionCoordinador);
+            _context.Aprobaciones.Add(decisionCoordinador);
+
+            if (dto.Aprobar && tipoDecision == TipoAprobacionSolicitud.CoordinadorPreaprobacion)
+            {
+                _context.RegistrosAuditoria.Add(new RegistroAuditoria
+                {
+                    IdSolicitud = id, IdUsuario = idUsuario, RolUsuario = TiposUsuario.Coordinador,
+                    Operacion = "PREAPROBACION_COORDINADOR",
+                    Detalle = $"Resultado: PREAPROBADA; pendiente de decisión final de un segundo coordinador. Monto: Q{solicitud.MontoSolicitado:N2}.",
+                    FechaHoraUtc = ahora
+                });
+                await _context.SaveChangesAsync();
+                return MapearADto(solicitud, solicitud.Estudiante?.Nombre, solicitud.Convocatoria?.Titulo);
+            }
+
+            solicitud.Estado = dto.Aprobar ? EstadoSolicitud.Aprobada : EstadoSolicitud.Rechazada;
+            solicitud.MotivoResolucion = dto.Motivo;
+            solicitud.FechaResolucion = ahora;
+            _context.RegistrosAuditoria.Add(new RegistroAuditoria
+            {
+                IdSolicitud = id, IdUsuario = idUsuario, RolUsuario = TiposUsuario.Coordinador,
+                Operacion = dto.Aprobar ? "APROBACION_FINAL_SEGUNDO_COORDINADOR" : "RECHAZO_COORDINADOR",
+                Detalle = $"Resultado: {solicitud.Estado}; estado: {estadoAnterior} -> {solicitud.Estado}; monto: Q{solicitud.MontoSolicitado:N2}; motivo: {(string.IsNullOrWhiteSpace(dto.Motivo) ? "no indicado" : "registrado (contenido omitido por seguridad)")}.",
+                FechaHoraUtc = ahora
+            });
+            _context.Notificaciones.Add(new NotificacionSolicitud
+            {
+                IdSolicitud = id, IdEstudiante = solicitud.IdEstudiante,
+                EstadoAnterior = estadoAnterior, EstadoNuevo = solicitud.Estado, FechaHoraUtc = ahora
+            });
+            await _context.SaveChangesAsync();
+            try { _notificador.NotificarCambioEstado(solicitud, estadoAnterior); } catch { /* La decisión queda persistida aunque falle una notificación. */ }
+            return MapearADto(solicitud, solicitud.Estudiante?.Nombre, solicitud.Convocatoria?.Titulo);
         }
 
-        var estadoAnterior = solicitud.Estado;
+        // Para montos de Q10,000 o menos se conserva la aprobación actual de un coordinador.
         solicitud.Estado = dto.Aprobar ? EstadoSolicitud.Aprobada : EstadoSolicitud.Rechazada;
         solicitud.MotivoResolucion = dto.Motivo;
         solicitud.FechaResolucion = DateTime.Now;
-        var ahora = DateTime.UtcNow;
         _context.Aprobaciones.Add(new AprobacionSolicitud { IdSolicitud = id, Tipo = TipoAprobacionSolicitud.Coordinador, IdUsuario = idUsuario, RolUsuario = TiposUsuario.Coordinador, Aprobada = dto.Aprobar, Motivo = dto.Motivo, FechaHoraUtc = ahora });
-        _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = id, IdUsuario = idUsuario, RolUsuario = TiposUsuario.Coordinador, Operacion = dto.Aprobar ? "APROBACION_COORDINADOR" : "RECHAZO_COORDINADOR", Detalle = $"Resultado: {solicitud.Estado}; estado: {estadoAnterior} -> {solicitud.Estado}; monto: Q{solicitud.MontoSolicitado:N2}; motivo: {Recortar(dto.Motivo)}", FechaHoraUtc = ahora });
+        _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = id, IdUsuario = idUsuario, RolUsuario = TiposUsuario.Coordinador, Operacion = dto.Aprobar ? "APROBACION_COORDINADOR" : "RECHAZO_COORDINADOR", Detalle = $"Resultado: {solicitud.Estado}; estado: {estadoAnterior} -> {solicitud.Estado}; monto: Q{solicitud.MontoSolicitado:N2}; motivo: {(string.IsNullOrWhiteSpace(dto.Motivo) ? "no indicado" : "registrado (contenido omitido por seguridad)")}", FechaHoraUtc = ahora });
         _context.Notificaciones.Add(new NotificacionSolicitud { IdSolicitud = id, IdEstudiante = solicitud.IdEstudiante, EstadoAnterior = estadoAnterior, EstadoNuevo = solicitud.Estado, FechaHoraUtc = ahora });
         await _context.SaveChangesAsync();
         try { _notificador.NotificarCambioEstado(solicitud, estadoAnterior); } catch { /* El cambio y el evento quedan persistidos. */ }
 
-        return MapearADto(solicitud, solicitud.Estudiante?.Nombre, solicitud.Convocatoria?.Titulo);
-    }
-
-    public async Task<SolicitudDTO> AprobarComoEvaluadorAsync(int id, RegistrarAprobacionDTO dto, int idEvaluador)
-    {
-        var solicitud = await _solicitudRepo.ObtenerPorIdAsync(id) ?? throw new InvalidOperationException("La solicitud no existe.");
-        if (solicitud.MontoSolicitado <= 10_000) throw new InvalidOperationException("Esta solicitud no requiere aprobación adicional del evaluador.");
-        if (solicitud.IdEvaluadorAsignado != idEvaluador) throw new UnauthorizedAccessException("Solo el evaluador asignado puede registrar esta decisión.");
-        if (solicitud.Estado != EstadoSolicitud.Evaluada || solicitud.EstadoRevision != EstadosRevision.Revisado)
-            throw new InvalidOperationException("La solicitud debe estar revisada antes de registrar la decisión del evaluador.");
-        if (!dto.Aprobar && string.IsNullOrWhiteSpace(dto.Motivo)) throw new InvalidOperationException("Debes indicar el motivo del rechazo.");
-        if (await _context.Aprobaciones.AnyAsync(a => a.IdSolicitud == id && a.Tipo == TipoAprobacionSolicitud.Evaluador))
-            throw new InvalidOperationException("El evaluador ya registró su decisión para esta solicitud.");
-
-        var anterior = solicitud.Estado;
-        var ahora = DateTime.UtcNow;
-        _context.Aprobaciones.Add(new AprobacionSolicitud { IdSolicitud = id, Tipo = TipoAprobacionSolicitud.Evaluador, IdUsuario = idEvaluador, RolUsuario = TiposUsuario.Evaluador, Aprobada = dto.Aprobar, Motivo = dto.Motivo, FechaHoraUtc = ahora });
-        _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = id, IdUsuario = idEvaluador, RolUsuario = TiposUsuario.Evaluador, Operacion = dto.Aprobar ? "APROBACION_EVALUADOR" : "RECHAZO_EVALUADOR", Detalle = $"Resultado: {(dto.Aprobar ? "APROBADA" : "RECHAZADA")}; monto: Q{solicitud.MontoSolicitado:N2}; motivo: {Recortar(dto.Motivo)}", FechaHoraUtc = ahora });
-        if (!dto.Aprobar)
-        {
-            solicitud.Estado = EstadoSolicitud.Rechazada;
-            solicitud.MotivoResolucion = dto.Motivo;
-            solicitud.FechaResolucion = DateTime.Now;
-            _context.Notificaciones.Add(new NotificacionSolicitud { IdSolicitud = id, IdEstudiante = solicitud.IdEstudiante, EstadoAnterior = anterior, EstadoNuevo = solicitud.Estado, FechaHoraUtc = ahora });
-        }
-        await _context.SaveChangesAsync();
-        if (anterior != solicitud.Estado)
-            try { _notificador.NotificarCambioEstado(solicitud, anterior); } catch { /* No se revierte el rechazo si falla un canal. */ }
         return MapearADto(solicitud, solicitud.Estudiante?.Nombre, solicitud.Convocatoria?.Titulo);
     }
 

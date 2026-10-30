@@ -38,7 +38,7 @@ public class DocumentosController : ControllerBase
 
         try
         {
-            var documento = await _documentoService.CargarDocumentoAsync(idSolicitud, archivo, tipoDocumento);
+            var documento = await _documentoService.CargarDocumentoAsync(idSolicitud, archivo, idEstudiante!.Value, tipoDocumento);
             return CreatedAtAction(nameof(ObtenerPorSolicitud), new { idSolicitud }, documento);
         }
         catch (InvalidOperationException ex)

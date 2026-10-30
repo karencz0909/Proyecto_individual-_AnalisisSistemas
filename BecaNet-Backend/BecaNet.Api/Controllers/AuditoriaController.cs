@@ -14,6 +14,10 @@ public class AuditoriaController : ControllerBase
     private readonly IAuditoriaService _auditoria;
     public AuditoriaController(IAuditoriaService auditoria) => _auditoria = auditoria;
 
+    [HttpGet]
+    public async Task<ActionResult<List<RegistroAuditoriaDTO>>> ObtenerRecientes()
+        => Ok(await _auditoria.ObtenerRecientesAsync());
+
     [HttpGet("solicitud/{idSolicitud:int}")]
     public async Task<ActionResult<List<RegistroAuditoriaDTO>>> ObtenerPorSolicitud(int idSolicitud)
     {

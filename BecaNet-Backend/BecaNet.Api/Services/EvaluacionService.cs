@@ -67,7 +67,7 @@ public class EvaluacionService : IEvaluacionService
             IdUsuario = dto.IdEvaluador,
             RolUsuario = TiposUsuario.Evaluador,
             Operacion = "REGISTRO_EVALUACION",
-            Detalle = $"Puntaje registrado: {creada.Puntaje:N2}; observaciones registradas.",
+            Detalle = $"Puntaje: (sin dato) -> {creada.Puntaje:N2}; observaciones: {(string.IsNullOrWhiteSpace(creada.Observaciones) ? "vacías" : "registradas (contenido omitido por seguridad)")}",
             FechaHoraUtc = DateTime.UtcNow
         });
         await _context.SaveChangesAsync();
@@ -127,4 +127,5 @@ public class EvaluacionService : IEvaluacionService
             }
         }
     }
+
 }

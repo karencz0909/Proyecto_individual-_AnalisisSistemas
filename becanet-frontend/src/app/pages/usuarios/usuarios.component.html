@@ -1,0 +1,134 @@
+<main class="page usuarios-page">
+  <header class="page-hero">
+    <h1>Gestión de usuarios</h1>
+    <p>Crea perfiles para estudiantes, coordinadores y evaluadores, y mantén sus datos actualizados.</p>
+  </header>
+
+  <div class="alert" [class.alert-success]="aviso.tipo === 'success'" [class.alert-error]="aviso.tipo === 'error'" *ngIf="aviso" role="status">
+    <span>{{ aviso.mensaje }}</span>
+    <button type="button" class="alert-close" (click)="aviso = null" aria-label="Cerrar aviso">×</button>
+  </div>
+
+  <section class="card" aria-labelledby="form-title">
+    <div class="card-head">
+      <div>
+        <h2 class="card-title" id="form-title">{{ editandoId === null ? 'Crear perfil' : 'Editar perfil' }}</h2>
+        <p class="card-sub">
+          {{ editandoId === null ? 'Elige el rol y completa los datos de acceso.' : 'Actualiza los datos del perfil. El rol se conserva.' }}
+        </p>
+      </div>
+      <span class="badge badge-blue" *ngIf="editandoId !== null">{{ etiquetaRol(formulario.tipoUsuario) }}</span>
+    </div>
+
+    <form #formUsuario="ngForm" (ngSubmit)="guardar(formUsuario)" novalidate>
+      <div class="form-grid">
+        <div class="field">
+          <label for="nombreUsuario">Nombre completo</label>
+          <input class="input" id="nombreUsuario" name="nombre" [(ngModel)]="formulario.nombre" required minlength="2" maxlength="120" autocomplete="name" placeholder="Ej. Ana Ramírez" />
+        </div>
+
+        <div class="field">
+          <label for="correoUsuario">Correo electrónico</label>
+          <input class="input" id="correoUsuario" name="correo" type="email" [(ngModel)]="formulario.correo" required maxlength="180" autocomplete="email" placeholder="nombre@ejemplo.com" />
+        </div>
+
+        <div class="field">
+          <label for="telefonoUsuario">Teléfono <span class="muted">(opcional)</span></label>
+          <input class="input" id="telefonoUsuario" name="telefono" type="tel" [(ngModel)]="formulario.telefono" autocomplete="tel" placeholder="Ej. 5555 4444" />
+        </div>
+
+        <div class="field">
+          <label for="rolUsuario">Rol</label>
+          <select class="input" id="rolUsuario" name="tipoUsuario" [(ngModel)]="formulario.tipoUsuario" [disabled]="editandoId !== null" (change)="cambiarRol()" required>
+            <option *ngFor="let rol of roles" [value]="rol.valor">{{ rol.etiqueta }}</option>
+          </select>
+        </div>
+
+        <div class="field" *ngIf="editandoId === null">
+          <label for="contrasenaUsuario">Contraseña inicial</label>
+          <input class="input" id="contrasenaUsuario" name="contrasena" type="password" [(ngModel)]="formulario.contrasena" required minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" />
+          <small class="muted">Se almacenará de forma segura.</small>
+        </div>
+
+        <div class="field" *ngIf="editandoId !== null">
+          <label for="contrasenaUsuario">Nueva contraseña <span class="muted">(opcional)</span></label>
+          <input class="input" id="contrasenaUsuario" name="contrasena" type="password" [(ngModel)]="formulario.contrasena" minlength="8" autocomplete="new-password" placeholder="Déjala vacía para conservarla" />
+          <small class="muted">Si la cambias, debe tener al menos 8 caracteres.</small>
+        </div>
+
+        <ng-container [ngSwitch]="formulario.tipoUsuario">
+          <div class="field" *ngSwitchCase="'ESTUDIANTE'">
+            <label for="nivelAcademico">Nivel académico</label>
+            <select class="input" id="nivelAcademico" name="nivelAcademico" [(ngModel)]="formulario.nivelAcademico" required>
+              <option value="Grado">Grado / Licenciatura</option>
+              <option value="Posgrado">Posgrado / Maestría</option>
+              <option value="Doctorado">Doctorado</option>
+            </select>
+          </div>
+          <div class="field" *ngSwitchCase="'ESTUDIANTE'">
+            <label for="institucion">Institución de procedencia <span class="muted">(opcional)</span></label>
+            <input class="input" id="institucion" name="institucionProcedencia" [(ngModel)]="formulario.institucionProcedencia" placeholder="Ej. Universidad Mariano Gálvez" />
+          </div>
+          <div class="field" *ngSwitchCase="'COORDINADOR'">
+            <label for="cargo">Cargo <span class="muted">(opcional)</span></label>
+            <input class="input" id="cargo" name="cargo" [(ngModel)]="formulario.cargo" placeholder="Ej. Coordinación de becas" />
+          </div>
+          <div class="field" *ngSwitchCase="'EVALUADOR'">
+            <label for="especialidad">Especialidad <span class="muted">(opcional)</span></label>
+            <input class="input" id="especialidad" name="especialidad" [(ngModel)]="formulario.especialidad" placeholder="Ej. Evaluación académica" />
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="formUsuario.invalid || guardando">
+          {{ guardando ? 'Guardando…' : (editandoId === null ? 'Crear usuario' : 'Guardar cambios') }}
+        </button>
+        <button *ngIf="editandoId !== null" type="button" class="btn btn-ghost" (click)="cancelarEdicion(formUsuario)" [disabled]="guardando">Cancelar edición</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="list-title">
+    <div class="card-head lista-head">
+      <div>
+        <h2 class="card-title" id="list-title">Perfiles registrados <span class="total">{{ usuarios.length }}</span></h2>
+        <p class="card-sub">Consulta los perfiles y edita sus datos cuando sea necesario.</p>
+      </div>
+      <input class="input buscar-usuarios" type="search" name="busquedaUsuarios" [(ngModel)]="busqueda" placeholder="Buscar por nombre, correo o rol" aria-label="Buscar usuarios" />
+    </div>
+
+    <div class="empty" *ngIf="cargando">Cargando perfiles…</div>
+    <div class="empty" *ngIf="!cargando && usuariosFiltrados.length === 0">
+      <strong>No hay perfiles para mostrar</strong>
+      {{ busqueda ? 'Prueba con otro nombre, correo o rol.' : 'Crea el primer perfil con el formulario.' }}
+    </div>
+
+    <div class="usuario-lista" *ngIf="!cargando && usuariosFiltrados.length > 0">
+      <article class="usuario-fila" *ngFor="let usuario of usuariosFiltrados">
+        <div class="usuario-persona">
+          <span class="usuario-avatar">{{ usuario.nombre.charAt(0).toUpperCase() }}</span>
+          <div class="usuario-identidad">
+            <strong>{{ usuario.nombre }}</strong>
+            <span>{{ usuario.correo }}</span>
+          </div>
+        </div>
+        <div class="usuario-rol">
+          <span class="badge" [class.badge-blue]="usuario.tipoUsuario === 'ESTUDIANTE'" [class.badge-purple]="usuario.tipoUsuario === 'COORDINADOR'" [class.badge-green]="usuario.tipoUsuario === 'EVALUADOR'">
+            {{ etiquetaRol(usuario.tipoUsuario) }}
+          </span>
+          <small class="muted" [ngSwitch]="usuario.tipoUsuario">
+            <ng-container *ngSwitchCase="'ESTUDIANTE'">{{ usuario.nivelAcademico || 'Nivel no indicado' }}</ng-container>
+            <ng-container *ngSwitchCase="'COORDINADOR'">{{ usuario.cargo || 'Coordinación' }}</ng-container>
+            <ng-container *ngSwitchCase="'EVALUADOR'">{{ usuario.especialidad || 'Evaluación' }}</ng-container>
+          </small>
+        </div>
+        <div class="usuario-contacto">
+          <span>{{ usuario.telefono || 'Sin teléfono' }}</span>
+          <small class="muted">Registro: {{ usuario.fechaRegistro | date:'dd/MM/yyyy' }}</small>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="editar(usuario)" [attr.aria-label]="'Editar perfil de ' + usuario.nombre">Editar</button>
+      </article>
+    </div>
+  </section>
+</main>

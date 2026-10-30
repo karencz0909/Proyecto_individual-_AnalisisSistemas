@@ -7,7 +7,7 @@ namespace BecaNet.Api.Services;
 
 public interface IDocumentoService
 {
-    Task<DocumentoDTO> CargarDocumentoAsync(int idSolicitud, IFormFile archivo, string? tipoDocumento = null);
+    Task<DocumentoDTO> CargarDocumentoAsync(int idSolicitud, IFormFile archivo, int idUsuario, string? tipoDocumento = null);
     Task<List<DocumentoDTO>> ObtenerPorSolicitudAsync(int idSolicitud);
 }
 
@@ -24,7 +24,7 @@ public class DocumentoService : IDocumentoService
         _env = env;
     }
 
-    public async Task<DocumentoDTO> CargarDocumentoAsync(int idSolicitud, IFormFile archivo, string? tipoDocumento = null)
+    public async Task<DocumentoDTO> CargarDocumentoAsync(int idSolicitud, IFormFile archivo, int idUsuario, string? tipoDocumento = null)
     {
         var solicitud = await _context.Solicitudes.FindAsync(idSolicitud)
             ?? throw new InvalidOperationException("La solicitud no existe.");
@@ -66,6 +66,13 @@ public class DocumentoService : IDocumentoService
         };
 
         var creado = await _documentoRepo.CrearAsync(documento);
+        _context.RegistrosAuditoria.Add(new RegistroAuditoria
+        {
+            IdSolicitud = idSolicitud, IdUsuario = idUsuario, RolUsuario = TiposUsuario.Estudiante,
+            Operacion = "CARGA_DOCUMENTO",
+            Detalle = $"Documentación: se agregó el tipo {creado.TipoDocumento} ({creado.TipoArchivo}); identificador de documento #{creado.Id}. El nombre y contenido del archivo se omiten."
+        });
+        await _context.SaveChangesAsync();
 
         return new DocumentoDTO
         {

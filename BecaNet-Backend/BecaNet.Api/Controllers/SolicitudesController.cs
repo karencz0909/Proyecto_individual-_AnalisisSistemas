@@ -121,14 +121,4 @@ public class SolicitudesController : ControllerBase
         }
     }
 
-    [HttpPost("{id}/aprobacion-evaluador")]
-    [Authorize(Roles = TiposUsuario.Evaluador)]
-    public async Task<ActionResult<SolicitudDTO>> AprobarComoEvaluador(int id, [FromBody] RegistrarAprobacionDTO dto)
-    {
-        var idEvaluador = User.ObtenerIdUsuario();
-        if (idEvaluador is null) return Unauthorized();
-        try { return Ok(await _solicitudService.AprobarComoEvaluadorAsync(id, dto, idEvaluador.Value)); }
-        catch (UnauthorizedAccessException) { return Forbid(); }
-        catch (InvalidOperationException ex) { return BadRequest(new { mensaje = ex.Message }); }
-    }
 }

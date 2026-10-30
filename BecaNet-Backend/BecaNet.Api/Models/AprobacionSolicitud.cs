@@ -4,6 +4,8 @@ public static class TipoAprobacionSolicitud
 {
     public const string Evaluador = "EVALUADOR";
     public const string Coordinador = "COORDINADOR";
+    public const string CoordinadorPreaprobacion = "COORD_PRE";
+    public const string CoordinadorFinal = "COORD_FINAL";
 }
 
 /// <summary>Decisión inmutable registrada por un actor sobre una solicitud.</summary>

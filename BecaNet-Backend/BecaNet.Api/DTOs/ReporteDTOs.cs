@@ -3,8 +3,12 @@ namespace BecaNet.Api.DTOs;
 public class RegistroAuditoriaDTO
 {
     public long Id { get; set; }
-    public int IdSolicitud { get; set; }
+    public int? IdSolicitud { get; set; }
+    public string Entidad { get; set; } = string.Empty;
+    public string? IdEntidad { get; set; }
     public int IdUsuario { get; set; }
+    public string NombreUsuario { get; set; } = string.Empty;
+    public string CorreoUsuario { get; set; } = string.Empty;
     public string RolUsuario { get; set; } = string.Empty;
     public string Operacion { get; set; } = string.Empty;
     public string? Detalle { get; set; }

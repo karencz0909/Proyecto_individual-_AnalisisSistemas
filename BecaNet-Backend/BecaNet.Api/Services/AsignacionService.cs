@@ -61,8 +61,8 @@ public class AsignacionService : IAsignacionService
 
         if (solicitud.Estado != EstadoSolicitud.EnProceso && solicitud.Estado != EstadoSolicitud.Evaluada)
             throw new InvalidOperationException("Esta solicitud ya fue resuelta; no se puede modificar la evaluación.");
-        if (solicitud.MontoSolicitado > 10_000 && solicitud.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador))
-            throw new InvalidOperationException("La decisión del evaluador ya fue registrada y la revisión quedó cerrada.");
+        if (solicitud.MontoSolicitado > 10_000 && solicitud.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.CoordinadorPreaprobacion && a.Aprobada))
+            throw new InvalidOperationException("La solicitud ya fue preaprobada; está pendiente de la decisión final de otro coordinador.");
 
         var evaluacion = solicitud.Evaluaciones.FirstOrDefault(e => e.IdEvaluador == idEvaluador);
         var puntajeAnterior = evaluacion?.Puntaje;
@@ -81,7 +81,8 @@ public class AsignacionService : IAsignacionService
         solicitud.EstadoRevision = EstadosRevision.Revisado;
         solicitud.Estado = EstadoSolicitud.Evaluada;
 
-        _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = idSolicitud, IdUsuario = idEvaluador, RolUsuario = TiposUsuario.Evaluador, Operacion = "MODIFICACION_REVISION", Detalle = $"Puntaje: {puntajeAnterior?.ToString("N2") ?? "sin valor"} -> {dto.Puntaje:N2}; observaciones: [{Recortar(observacionesAnteriores)}] -> [{Recortar(dto.Observaciones.Trim())}]", FechaHoraUtc = DateTime.UtcNow });
+        var observacionesCambiaron = !string.Equals(observacionesAnteriores, dto.Observaciones.Trim(), StringComparison.Ordinal);
+        _context.RegistrosAuditoria.Add(new RegistroAuditoria { IdSolicitud = idSolicitud, IdUsuario = idEvaluador, RolUsuario = TiposUsuario.Evaluador, Operacion = "MODIFICACION_REVISION", Detalle = $"Puntaje: {puntajeAnterior?.ToString("N2") ?? "sin valor"} -> {dto.Puntaje:N2}; observaciones: {(observacionesCambiaron ? "modificadas (contenido omitido por seguridad)" : "sin cambios")}", FechaHoraUtc = DateTime.UtcNow });
         if (estadoAnterior != solicitud.Estado)
             _context.Notificaciones.Add(new NotificacionSolicitud { IdSolicitud = idSolicitud, IdEstudiante = solicitud.IdEstudiante, EstadoAnterior = estadoAnterior, EstadoNuevo = solicitud.Estado });
         await _context.SaveChangesAsync();
@@ -99,8 +100,8 @@ public class AsignacionService : IAsignacionService
             || solicitud.Estado == EstadoSolicitud.Rechazada
             || solicitud.Estado == EstadoSolicitud.Cancelada)
             throw new InvalidOperationException("La solicitud ya fue resuelta; no se puede volver a revisión.");
-        if (solicitud.MontoSolicitado > 10_000 && solicitud.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador))
-            throw new InvalidOperationException("La decisión del evaluador ya fue registrada y no se puede reabrir la revisión.");
+        if (solicitud.MontoSolicitado > 10_000 && solicitud.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.CoordinadorPreaprobacion && a.Aprobada))
+            throw new InvalidOperationException("La solicitud ya fue preaprobada; está pendiente de la decisión final de otro coordinador.");
 
         var estadoAnterior = solicitud.Estado;
         solicitud.EstadoRevision = EstadosRevision.EnRevision;
@@ -321,8 +322,7 @@ public class AsignacionService : IAsignacionService
             TituloConvocatoria = s.Convocatoria?.Titulo ?? "Convocatoria",
             Motivo = s.Motivo,
             MontoSolicitado = s.MontoSolicitado,
-            DecisionEvaluadorRegistrada = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador),
-            AprobadaPorEvaluador = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador && a.Aprobada),
+            PreaprobadaPorCoordinador = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.CoordinadorPreaprobacion && a.Aprobada),
             EstadoSolicitud = s.Estado,
             EstadoRevision = s.EstadoRevision,
             FechaAsignacion = s.FechaAsignacion,
@@ -347,8 +347,14 @@ public class AsignacionService : IAsignacionService
             TituloConvocatoria = s.Convocatoria?.Titulo ?? "Convocatoria",
             Motivo = s.Motivo,
             MontoSolicitado = s.MontoSolicitado,
-            AprobadaPorEvaluador = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Evaluador && a.Aprobada),
-            AprobadaPorCoordinador = s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.Coordinador && a.Aprobada),
+            AprobadaPorCoordinador = s.MontoSolicitado > 10_000
+                ? s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.CoordinadorFinal && a.Aprobada)
+                : s.Aprobaciones.Any(a => (a.Tipo == TipoAprobacionSolicitud.Coordinador || a.Tipo == TipoAprobacionSolicitud.CoordinadorFinal) && a.Aprobada),
+            PreaprobadaPorCoordinador = s.MontoSolicitado > 10_000
+                ? s.Aprobaciones.Any(a => (a.Tipo == TipoAprobacionSolicitud.CoordinadorPreaprobacion || a.Tipo == TipoAprobacionSolicitud.Coordinador) && a.Aprobada)
+                : s.Aprobaciones.Any(a => a.Tipo == TipoAprobacionSolicitud.CoordinadorPreaprobacion && a.Aprobada),
+            IdPreaprobadorCoordinador = s.Aprobaciones.FirstOrDefault(a => a.Tipo == TipoAprobacionSolicitud.CoordinadorPreaprobacion)?.IdUsuario
+                ?? (s.MontoSolicitado > 10_000 ? s.Aprobaciones.FirstOrDefault(a => a.Tipo == TipoAprobacionSolicitud.Coordinador)?.IdUsuario : null),
             Estado = s.Estado,
             EstadoRevision = s.EstadoRevision,
             IdEvaluadorAsignado = s.IdEvaluadorAsignado,

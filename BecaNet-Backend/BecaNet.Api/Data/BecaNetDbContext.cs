@@ -89,10 +89,13 @@ public class BecaNetDbContext : DbContext
         modelBuilder.Entity<RegistroAuditoria>(cfg =>
         {
             cfg.ToTable("RegistroAuditoria");
+            cfg.Property(a => a.Entidad).HasMaxLength(80).IsRequired();
+            cfg.Property(a => a.IdEntidad).HasMaxLength(100);
             cfg.Property(a => a.RolUsuario).HasMaxLength(30).IsRequired();
             cfg.Property(a => a.Operacion).HasMaxLength(80).IsRequired();
             cfg.Property(a => a.Detalle).HasMaxLength(2000);
             cfg.HasIndex(a => new { a.IdSolicitud, a.FechaHoraUtc });
+            cfg.HasIndex(a => new { a.Entidad, a.IdEntidad, a.FechaHoraUtc });
             cfg.HasOne<Solicitud>().WithMany().HasForeignKey(a => a.IdSolicitud).OnDelete(DeleteBehavior.Restrict);
         });
 

@@ -1,94 +1,121 @@
-<div class="auth-page-container">
-  <div class="auth-card">
-    <div class="auth-header">
-      <h2>Registro de Estudiante</h2>
-      <p>Crea tu cuenta para iniciar tu postulación de beca</p>
-    </div>
+<main class="registro-page">
+  <section class="registro-card" aria-labelledby="registro-titulo">
+    <aside class="registro-intro">
+      <a class="registro-brand" routerLink="/" aria-label="Ir al inicio de BecaNet">
+        <span class="registro-brand-mark">B</span>
+        <span>BecaNet</span>
+      </a>
 
-    <div *ngIf="mensajeError" class="alert alert-danger">
-      {{ mensajeError }}
-    </div>
-
-    <form (ngSubmit)="onSubmit()" #registroForm="ngForm">
-      <div class="form-group">
-        <label>Nombre completo</label>
-        <input 
-          type="text" 
-          [(ngModel)]="datos.nombre" 
-          name="nombre" 
-          class="form-input" 
-          placeholder="Ej: Juan Pérez" 
-          required 
-        />
+      <div class="intro-copy">
+        <span class="intro-eyebrow">Tu futuro comienza aquí</span>
+        <h1>Una oportunidad puede cambiarlo todo.</h1>
+        <p>Crea tu perfil de estudiante para iniciar tu postulación y dar seguimiento a tus oportunidades de beca.</p>
       </div>
 
-      <div class="form-group">
-        <label>Correo electrónico</label>
-        <input 
-          type="email" 
-          [(ngModel)]="datos.correo" 
-          name="correo" 
-          class="form-input" 
-          placeholder="tucorreo@ejemplo.com" 
-          required 
-        />
+      <div class="intro-note">
+        <span class="intro-note-icon" aria-hidden="true">✓</span>
+        <span>Tu cuenta te permitirá gestionar tu solicitud en un solo lugar.</span>
+      </div>
+      <span class="intro-decoration intro-decoration-one" aria-hidden="true"></span>
+      <span class="intro-decoration intro-decoration-two" aria-hidden="true"></span>
+    </aside>
+
+    <div class="registro-form-panel">
+      <header class="form-heading">
+        <span class="form-step">CREA TU CUENTA</span>
+        <h2 id="registro-titulo">Registro de estudiante</h2>
+        <p>Completa tus datos para comenzar tu postulación.</p>
+      </header>
+
+      <div *ngIf="mensajeError" class="registro-alert" role="alert">
+        <span class="alert-icon" aria-hidden="true">!</span>
+        <span>{{ mensajeError }}</span>
       </div>
 
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input 
-          type="password" 
-          [(ngModel)]="datos.contrasena" 
-          name="contrasena" 
-          class="form-input" 
-          placeholder="••••••••" 
-          required 
-          minlength="6" 
-        />
-      </div>
+      <form (ngSubmit)="onSubmit()" #registroForm="ngForm" novalidate>
+        <div class="registro-fields">
+          <div class="registro-field">
+            <label for="nombre">Nombre completo</label>
+            <input
+              id="nombre"
+              type="text"
+              [(ngModel)]="datos.nombre"
+              name="nombre"
+              placeholder="Ej. Juan Pérez"
+              autocomplete="name"
+              required />
+          </div>
 
-      <div class="form-group">
-        <label>Teléfono (opcional)</label>
-        <input 
-          type="tel" 
-          [(ngModel)]="datos.telefono" 
-          name="telefono" 
-          class="form-input" 
-          placeholder="Ej: 55554444" 
-        />
-      </div>
+          <div class="registro-field">
+            <label for="correo">Correo electrónico</label>
+            <input
+              id="correo"
+              type="email"
+              [(ngModel)]="datos.correo"
+              name="correo"
+              placeholder="tucorreo@ejemplo.com"
+              autocomplete="email"
+              required />
+          </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Nivel Académico</label>
-          <select [(ngModel)]="datos.nivelAcademico" name="nivelAcademico" class="form-select">
-            <option value="Grado">Grado / Licenciatura</option>
-            <option value="Posgrado">Posgrado / Maestría</option>
-            <option value="Doctorado">Doctorado</option>
-          </select>
+          <div class="registro-field">
+            <label for="contrasena">Contraseña</label>
+            <input
+              id="contrasena"
+              type="password"
+              [(ngModel)]="datos.contrasena"
+              name="contrasena"
+              placeholder="Al menos 8 caracteres"
+              autocomplete="new-password"
+              required
+              minlength="8" />
+            <small>Usa al menos 8 caracteres para proteger tu cuenta.</small>
+          </div>
+
+          <div class="registro-field">
+            <label for="telefono">Teléfono <span class="optional-label">Opcional</span></label>
+            <input
+              id="telefono"
+              type="tel"
+              [(ngModel)]="datos.telefono"
+              name="telefono"
+              placeholder="Ej. 5555 4444"
+              autocomplete="tel" />
+          </div>
+
+          <div class="registro-field">
+            <label for="nivelAcademico">Nivel académico</label>
+            <select id="nivelAcademico" [(ngModel)]="datos.nivelAcademico" name="nivelAcademico">
+              <option value="Grado">Grado / Licenciatura</option>
+              <option value="Posgrado">Posgrado / Maestría</option>
+              <option value="Doctorado">Doctorado</option>
+            </select>
+          </div>
+
+          <div class="registro-field">
+            <label for="institucionProcedencia">Institución de procedencia</label>
+            <input
+              id="institucionProcedencia"
+              type="text"
+              [(ngModel)]="datos.institucionProcedencia"
+              name="institucionProcedencia"
+              placeholder="Ej. Universidad Mariano Gálvez"
+              autocomplete="organization"
+              required />
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Institución de procedencia</label>
-          <input 
-            type="text" 
-            [(ngModel)]="datos.institucionProcedencia" 
-            name="institucionProcedencia" 
-            class="form-input" 
-            placeholder="Ej: UMG" 
-            required 
-          />
-        </div>
-      </div>
+        <button type="submit" class="registro-submit" [disabled]="cargando || !registroForm.form.valid">
+          <span>{{ cargando ? 'Creando tu cuenta…' : 'Crear cuenta' }}</span>
+          <span class="submit-arrow" aria-hidden="true">→</span>
+        </button>
+      </form>
 
-      <button type="submit" class="btn-submit" [disabled]="cargando || !registroForm.form.valid">
-        {{ cargando ? 'Registrando...' : 'Crear Cuenta' }}
-      </button>
-    </form>
-
-    <div class="auth-footer">
-      <span>¿Ya tienes cuenta? </span>
-      <a routerLink="/login" class="link-auth">Inicia sesión aquí</a>
+      <p class="registro-login">
+        ¿Ya tienes cuenta?
+        <a routerLink="/login">Inicia sesión</a>
+      </p>
+      <p class="registro-security"><span aria-hidden="true">●</span> Tus datos se utilizan únicamente para gestionar tu perfil.</p>
     </div>
-  </div>
-</div>
+  </section>
+</main>

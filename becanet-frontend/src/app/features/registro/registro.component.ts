@@ -8,8 +8,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-registro',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './registro.component.html',
-  styleUrl: '../login/login.component.css'
+  templateUrl: './registro.component.html'
 })
 export class RegistroComponent {
   datos = {
@@ -17,7 +16,7 @@ export class RegistroComponent {
     correo: '',
     contrasena: '',
     telefono: '',
-    nivelAcademico: 'Universitario',
+    nivelAcademico: 'Grado',
     institucionProcedencia: ''
   };
   mensajeError = '';

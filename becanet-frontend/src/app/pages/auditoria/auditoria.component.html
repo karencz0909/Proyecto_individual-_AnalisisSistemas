@@ -1,0 +1,36 @@
+<main class="auditoria-page page-container">
+  <header class="page-hero">
+    <h1>Registro de auditoría</h1>
+    <p>Consulta las decisiones y los cambios relevantes realizados en BecaNet.</p>
+  </header>
+
+  <section class="card" aria-labelledby="auditoria-title">
+    <div class="card-head auditoria-head">
+      <div>
+        <h2 class="card-title" id="auditoria-title">Actividad reciente <span class="total">{{ registros.length }}</span></h2>
+        <p class="card-sub">Se muestran hasta los últimos 500 eventos, ordenados del más reciente al más antiguo.</p>
+      </div>
+      <button type="button" class="btn btn-outline" (click)="cargar()" [disabled]="cargando">Actualizar</button>
+    </div>
+
+    <p class="aviso error" *ngIf="error" role="alert">{{ error }}</p>
+    <div class="empty-state" *ngIf="cargando">Cargando auditoría…</div>
+    <div class="empty-state" *ngIf="!cargando && !error && registros.length === 0">Todavía no hay eventos registrados.</div>
+
+    <div class="tabla-wrap" *ngIf="!cargando && registros.length">
+      <table>
+        <thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Registro</th><th>Cambio / resultado</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let r of registros">
+            <td data-label="Fecha y hora">{{ r.fechaHoraUtc | date:'dd/MM/yyyy HH:mm':'UTC' }} UTC</td>
+            <td data-label="Usuario"><strong>{{ r.nombreUsuario }}</strong><small>{{ r.correoUsuario || ('ID ' + r.idUsuario) }} · {{ r.rolUsuario }}</small></td>
+            <td data-label="Acción">{{ r.operacion }}</td>
+            <td data-label="Registro">{{ r.entidad }}<small>{{ r.idEntidad || (r.idSolicitud !== null ? 'Solicitud #' + r.idSolicitud : '—') }}</small></td>
+            <td class="detalle" data-label="Cambio / resultado">{{ r.detalle || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota-seguridad">Las contraseñas, tokens y otros secretos no se muestran en este registro.</p>
+  </section>
+</main>

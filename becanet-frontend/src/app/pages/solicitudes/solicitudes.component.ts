@@ -227,7 +227,10 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
       case 'CANCELADA': return { texto: 'Cancelada', clase: 'badge-gray' };
       case 'APROBADA':  return { texto: 'Aprobada', clase: 'badge-green' };
       case 'RECHAZADA': return { texto: 'Rechazada', clase: 'badge-red' };
-      case 'EVALUADA':  return { texto: 'Evaluada', clase: 'badge-purple' };
+      case 'EVALUADA':
+        return s.montoSolicitado > 10_000 && s.aprobaciones?.some(a => a.tipo === 'COORD_PRE' && a.aprobada)
+          ? { texto: 'Preaprobada', clase: 'badge-purple' }
+          : { texto: 'Evaluada', clase: 'badge-purple' };
     }
     if (!s.tieneCertificacionEstudios) return { texto: 'Falta documentación', clase: 'badge-yellow' };
     if (s.estadoRevision === 'EN_REVISION') return { texto: 'En revisión', clase: 'badge-blue' };
@@ -250,10 +253,10 @@ export class SolicitudesComponent implements OnInit, OnDestroy {
                                  { titulo: 'Resultado', detalle: 'Pendiente', estado: 'pendiente' };
 
     if (s.montoSolicitado > 10_000 && resultado.estado === 'actual') {
-      const decisionEvaluador = s.aprobaciones?.find(a => a.tipo === 'EVALUADOR');
-      resultado.detalle = decisionEvaluador?.aprobada
-        ? 'El evaluador aprobó; pendiente de coordinación'
-        : 'Pendiente de decisión del evaluador';
+      const preaprobacion = s.aprobaciones?.find(a => a.tipo === 'COORD_PRE');
+      resultado.detalle = preaprobacion?.aprobada
+          ? 'Preaprobada; pendiente de aprobación final de otro coordinador'
+          : 'Evaluación completada; pendiente de preaprobación de coordinación';
     }
 
     return [

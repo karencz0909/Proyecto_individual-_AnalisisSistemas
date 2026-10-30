@@ -30,6 +30,10 @@ export class SesionService {
     return localStorage.getItem(this.NOMBRE_KEY) || 'Usuario';
   }
 
+  obtenerId(): string | null {
+    return localStorage.getItem(this.ID_KEY);
+  }
+
   estaAutenticado(): boolean {
     return !!this.obtenerToken();
   }

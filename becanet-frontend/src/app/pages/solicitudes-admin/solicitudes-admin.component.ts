@@ -13,6 +13,7 @@ import {
   SolicitudCoordinador
 } from '../../models/asignacion.model';
 import { Comite } from '../../models/comite.model';
+import { SesionService } from '../../services/sesion.service';
 
 type Etapa = 'SIN_ASIGNAR' | 'EN_REVISION' | 'EVALUADA' | 'APROBADA' | 'RECHAZADA' | 'CANCELADA';
 type Filtro = 'TODAS' | Etapa;
@@ -65,7 +66,8 @@ export class SolicitudesAdminComponent implements OnInit {
     private asignacionService: AsignacionService,
     private solicitudService: SolicitudService,
     private comiteService: ComiteService,
-    private documentoService: DocumentoService
+    private documentoService: DocumentoService,
+    private sesionService: SesionService
   ) {}
 
   ngOnInit(): void {
@@ -124,7 +126,10 @@ export class SolicitudesAdminComponent implements OnInit {
       case 'CANCELADA': return { texto: 'Cancelada', clase: 'badge-gray' };
       case 'APROBADA':  return { texto: 'Aprobada', clase: 'badge-green' };
       case 'RECHAZADA': return { texto: 'Rechazada', clase: 'badge-red' };
-      case 'EVALUADA':  return { texto: 'Evaluada · por decidir', clase: 'badge-purple' };
+      case 'EVALUADA':
+        return s.montoSolicitado > 10_000 && s.preaprobadaPorCoordinador
+          ? { texto: 'Preaprobada', clase: 'badge-purple' }
+          : { texto: 'Evaluada · por decidir', clase: 'badge-purple' };
       case 'EN_REVISION': return { texto: 'En revisión', clase: 'badge-blue' };
       default:
         return s.tieneCertificacionEstudios
@@ -248,6 +253,12 @@ export class SolicitudesAdminComponent implements OnInit {
     this.resolver(s, true);
   }
 
+  esPreaprobadorActual(s: SolicitudCoordinador): boolean {
+    return s.preaprobadaPorCoordinador
+      && s.idPreaprobadorCoordinador != null
+      && Number(this.sesionService.obtenerId()) === s.idPreaprobadorCoordinador;
+  }
+
   pedirRechazo(id: number): void {
     this.confirmandoAprobar = null;
     this.motivoRechazo = '';
@@ -273,9 +284,13 @@ export class SolicitudesAdminComponent implements OnInit {
         next: () => {
           this.procesando = null;
           this.cancelarAccion();
+          const esMontoAlto = s.montoSolicitado > 10000;
+          const textoResultado = aprobar && esMontoAlto && !s.preaprobadaPorCoordinador
+            ? `Solicitud #${s.idSolicitud} preaprobada. Falta que otro coordinador registre la aprobación final.`
+            : `Solicitud #${s.idSolicitud} ${aprobar ? 'aprobada' : 'rechazada'}. El estudiante verá el resultado de inmediato.`;
           this.aviso = {
             tipo: 'success',
-            texto: `Solicitud #${s.idSolicitud} ${aprobar ? 'aprobada' : 'rechazada'}. El estudiante verá el resultado de inmediato.`
+            texto: textoResultado
           };
           this.recargarListas();
         },

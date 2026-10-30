@@ -73,6 +73,7 @@ builder.Services.AddScoped<IEvaluacionRepository, EvaluacionRepository>();
 // ---- Servicios (lógica de negocio) ----
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPerfilService, PerfilService>();
+builder.Services.AddScoped<IGestionUsuariosService, GestionUsuariosService>();
 builder.Services.AddScoped<IConvocatoriaService, ConvocatoriaService>();
 builder.Services.AddScoped<ISolicitudService, SolicitudService>();
 builder.Services.AddScoped<IDocumentoService, DocumentoService>();

@@ -18,8 +18,7 @@ public class AsignacionEvaluadorDTO
     public string TituloConvocatoria { get; set; } = string.Empty;
     public string? Motivo { get; set; }
     public decimal MontoSolicitado { get; set; }
-    public bool DecisionEvaluadorRegistrada { get; set; }
-    public bool AprobadaPorEvaluador { get; set; }
+    public bool PreaprobadaPorCoordinador { get; set; }
     public string EstadoSolicitud { get; set; } = string.Empty;
     public string EstadoRevision { get; set; } = string.Empty;
     public DateTime? FechaAsignacion { get; set; }
@@ -49,8 +48,9 @@ public class SolicitudCoordinadorDTO
     public string TituloConvocatoria { get; set; } = string.Empty;
     public string? Motivo { get; set; }
     public decimal MontoSolicitado { get; set; }
-    public bool AprobadaPorEvaluador { get; set; }
     public bool AprobadaPorCoordinador { get; set; }
+    public bool PreaprobadaPorCoordinador { get; set; }
+    public int? IdPreaprobadorCoordinador { get; set; }
     public string Estado { get; set; } = string.Empty;
     public string EstadoRevision { get; set; } = string.Empty;
     public int? IdEvaluadorAsignado { get; set; }

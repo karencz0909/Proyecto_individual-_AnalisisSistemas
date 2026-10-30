@@ -38,6 +38,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
     data: { roles: ['COORDINADOR'] }
   },
+  {
+    path: 'usuarios',
+    loadComponent: () => import('./pages/usuarios/usuarios.component').then(m => m.UsuariosComponent),
+    canActivate: [authGuard],
+    data: { roles: ['COORDINADOR'] }
+  },
+  {
+    path: 'auditoria',
+    loadComponent: () => import('./pages/auditoria/auditoria.component').then(m => m.AuditoriaComponent),
+    canActivate: [authGuard],
+    data: { roles: ['COORDINADOR'] }
+  },
   { 
     path: 'evaluaciones', 
     loadComponent: () => import('./features/evaluaciones/evaluaciones.component').then(m => m.EvaluacionesComponent),

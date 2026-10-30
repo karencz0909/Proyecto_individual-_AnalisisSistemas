@@ -4,11 +4,11 @@
 }
 
 .landing-container {
-  background-color: var(--bg-color, #0b0f19);
-  color: var(--text-color, #f3f4f6);
-  min-height: 100vh;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100%;
+  font-family: inherit;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 /* Hero Section */
@@ -84,8 +84,8 @@
   gap: 3rem;
   padding: 2.5rem 2rem;
   background: rgba(37, 99, 235, 0.05);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .stat-card {
@@ -124,6 +124,42 @@
   opacity: 0.7;
 }
 
+/* Filtros de categorías */
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0 auto 1.75rem;
+}
+
+.tab-btn {
+  min-height: 38px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.tab-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.tab-btn.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.2);
+}
+
 /* Grid Becas */
 .grid-becas {
   display: grid;
@@ -132,8 +168,8 @@
 }
 
 .beca-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(125, 125, 125, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   padding: 1.5rem;
   border-radius: 12px;
   display: flex;
@@ -187,8 +223,8 @@
 
 /* Simulador */
 .simulator-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(125, 125, 125, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   padding: 2.5rem;
   border-radius: 16px;
   text-align: center;
@@ -204,9 +240,9 @@
 }
 
 .simulator-input-group input {
-  background: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(125, 125, 125, 0.3);
-  color: inherit;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 0.7rem 1rem;
   border-radius: 8px;
   width: 140px;
@@ -239,8 +275,8 @@
 }
 
 .faq-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(125, 125, 125, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-bottom: 1rem;
   padding: 1rem 1.5rem;
@@ -255,7 +291,7 @@
   margin-top: 0.8rem;
   opacity: 0.8;
   font-size: 0.9rem;
-  border-top: 1px solid rgba(125, 125, 125, 0.15);
+  border-top: 1px solid var(--border-color);
   padding-top: 0.8rem;
 }
 

@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { AsignacionService } from '../../services/asignacion.service';
 import { DocumentoService } from '../../services/documento.service';
 import { SesionService } from '../../services/sesion.service';
-import { SolicitudService } from '../../services/solicitud.service';
 import { AsignacionEvaluador, DocumentoResumen } from '../../models/asignacion.model';
 
 type Columna = 'EN_REVISION' | 'REVISADO';
@@ -41,8 +40,7 @@ export class EvaluacionesComponent implements OnInit {
   constructor(
     private asignacionService: AsignacionService,
     private documentoService: DocumentoService,
-    private sesionService: SesionService,
-    private solicitudService: SolicitudService
+    private sesionService: SesionService
   ) {}
 
   ngOnInit(): void {
@@ -104,7 +102,7 @@ export class EvaluacionesComponent implements OnInit {
   }
 
   bloqueada(t: Tarjeta): boolean {
-    return this.resuelta(t) || (t.montoSolicitado > 10000 && t.decisionEvaluadorRegistrada);
+    return this.resuelta(t) || (t.montoSolicitado > 10000 && !!t.preaprobadaPorCoordinador);
   }
 
   trackPorId(_: number, t: Tarjeta): number {
@@ -229,26 +227,6 @@ export class EvaluacionesComponent implements OnInit {
       obsEdit: a.observacionesEvaluacion ?? t.obsEdit,
       guardando: false,
       error: ''
-    });
-  }
-
-  decidirAprobacion(t: Tarjeta, aprobar: boolean): void {
-    const motivo = aprobar ? undefined : window.prompt('Indica el motivo del rechazo:')?.trim();
-    if (!aprobar && (!motivo || motivo.length < 5)) {
-      t.error = 'El motivo del rechazo debe tener al menos 5 caracteres.';
-      return;
-    }
-    t.guardando = true;
-    t.error = '';
-    this.solicitudService.aprobarComoEvaluador(t.idSolicitud, { aprobar, motivo }).subscribe({
-      next: () => {
-        t.guardando = false;
-        t.decisionEvaluadorRegistrada = true;
-        t.aprobadaPorEvaluador = aprobar;
-        if (!aprobar) t.estadoSolicitud = 'RECHAZADA';
-        this.aviso = { tipo: aprobar ? 'success' : 'info', texto: aprobar ? 'Aprobación del evaluador registrada.' : 'Solicitud rechazada y notificada al estudiante.' };
-      },
-      error: err => { t.guardando = false; t.error = this.extraerError(err); }
     });
   }
 
