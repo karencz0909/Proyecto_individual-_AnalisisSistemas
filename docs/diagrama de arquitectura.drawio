@@ -1,0 +1,125 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.6 Chrome/140.0.7339.249 Electron/38.8.0 Safari/537.36" version="29.3.6">
+  <diagram id="becanet-architecture" name="Arquitectura BecaNet">
+    <mxGraphModel dx="4004" dy="1252" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1240" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#152b4a;strokeColor=#152b4a;fontColor=#ffffff;fontSize=26;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=24;" value="BecaNet | Arquitectura de la solución" vertex="1">
+          <mxGeometry height="76" width="2510" x="30" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontColor=#FFFFFF;fontSize=14;" value="Vista lógica de los componentes, responsabilidades, seguridad y flujo de postulaciones" vertex="1">
+          <mxGeometry height="30" width="1500" x="36" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="actorshead" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e9f1ff;strokeColor=#a8c4f5;fontColor=#1d4ed8;fontSize=15;fontStyle=1;align=center;verticalAlign=middle;" value="PERSONAS Y ROLES" vertex="1">
+          <mxGeometry height="46" width="220" x="-110" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="student" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#93c5fd;fontColor=#243247;fontSize=13;align=left;verticalAlign=middle;spacing=12;" value="&lt;b&gt;Estudiante&lt;/b&gt;&lt;br&gt;• Registro e inicio de sesión&lt;br&gt;• Consulta convocatorias&lt;br&gt;• Envía solicitud y documentos&lt;br&gt;• Sigue estado y notificaciones" vertex="1">
+          <mxGeometry height="150" width="220" x="-120" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="coordinator" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;fontColor=#243247;fontSize=13;align=left;verticalAlign=middle;spacing=12;" value="&lt;b&gt;Coordinador&lt;/b&gt;&lt;br&gt;• Convocatorias y comités&lt;br&gt;• Asigna/distribuye solicitudes&lt;br&gt;• Gestiona perfiles&lt;br&gt;• Decide solicitudes y consulta auditoría" vertex="1">
+          <mxGeometry height="165" width="220" x="-120" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="evaluator" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#86efac;fontColor=#243247;fontSize=13;align=left;verticalAlign=middle;spacing=12;" value="&lt;b&gt;Evaluador&lt;/b&gt;&lt;br&gt;• Ve solicitudes asignadas&lt;br&gt;• Revisa documentos y motivo&lt;br&gt;• Registra puntaje y observaciones&lt;br&gt;• Mueve a «Revisado»" vertex="1">
+          <mxGeometry height="150" width="220" x="-120" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="uihead" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1d4ed8;strokeColor=#1d4ed8;fontColor=#ffffff;fontSize=15;fontStyle=1;align=center;verticalAlign=middle;" value="1  |  CLIENTE WEB" vertex="1">
+          <mxGeometry height="46" width="360" x="295" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="ui" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#60a5fa;fontColor=#243247;fontSize=13;align=left;verticalAlign=top;spacing=14;" value="&lt;b&gt;Angular SPA · localhost:4200&lt;/b&gt;&lt;br&gt;Aplicación de una sola página; componentes cargados por ruta.&lt;br&gt;&lt;br&gt;&lt;b&gt;Vistas principales&lt;/b&gt;&lt;br&gt;• Inicio, programas, simulador y preguntas frecuentes&lt;br&gt;• Registro e inicio de sesión&lt;br&gt;• Mi solicitud y documentación (estudiante)&lt;br&gt;• Evaluaciones (evaluador)&lt;br&gt;• Solicitudes, comités, usuarios y auditoría (coordinador)&lt;br&gt;&lt;br&gt;&lt;b&gt;Infraestructura frontend&lt;/b&gt;&lt;br&gt;• Angular Router + authGuard por rol&lt;br&gt;• HttpClient services para consumir API REST&lt;br&gt;• authInterceptor adjunta el token Bearer&lt;br&gt;• Theme service: modos claro y oscuro" vertex="1">
+          <mxGeometry height="505" width="360" x="295" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="uibase" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=#93c5fd;fontColor=#1e3a5f;fontSize=12;align=left;verticalAlign=middle;spacing=12;" value="Base URL de desarrollo: http://localhost:5000/api&lt;br&gt;Los servicios Angular centralizan las llamadas HTTP por módulo." vertex="1">
+          <mxGeometry height="80" width="360" x="295" y="735" as="geometry" />
+        </mxCell>
+        <mxCell id="apihead" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6d28d9;strokeColor=#6d28d9;fontColor=#ffffff;fontSize=15;fontStyle=1;align=center;verticalAlign=middle;" value="2  |  API Y LÓGICA DE NEGOCIO" vertex="1">
+          <mxGeometry height="46" width="430" x="700" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="controllers" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f3ff;strokeColor=#a78bfa;fontColor=#243247;fontSize=13;align=left;verticalAlign=middle;spacing=13;" value="&lt;b&gt;ASP.NET Core Web API · .NET 8&lt;/b&gt;&lt;br&gt;&lt;b&gt;Controladores REST&lt;/b&gt;&lt;br&gt;Auth · Convocatorias · Solicitudes · Documentos&lt;br&gt;Asignaciones · Comités · Evaluaciones · Usuarios&lt;br&gt;Perfil · Reportes · Auditoría · Notificaciones&lt;br&gt;&lt;br&gt;Valida entrada, obtiene actor/rol del JWT y responde DTOs JSON.&lt;br&gt;Swagger disponible en Development." vertex="1">
+          <mxGeometry height="190" width="430" x="700" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="services" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f3ff;strokeColor=#a78bfa;fontColor=#243247;fontSize=13;align=left;verticalAlign=top;spacing=13;" value="&lt;b&gt;Servicios de aplicación / reglas de negocio&lt;/b&gt;&lt;br&gt;• AuthService: login, registro y emisión JWT&lt;br&gt;• ConvocatoriaService / ComiteService&lt;br&gt;• SolicitudService: ciclo de vida y decisiones&lt;br&gt;• DocumentoService: carga y consulta de archivos&lt;br&gt;• AsignacionService: reparto, revisión y evaluación&lt;br&gt;• GestionUsuariosService: perfiles por rol&lt;br&gt;• AuditoriaService / ReporteService / NotificacionService&lt;br&gt;&lt;br&gt;&lt;b&gt;Regla de aprobación&lt;/b&gt;&lt;br&gt;Hasta Q10,000: decisión de un coordinador.&lt;br&gt;Más de Q10,000: evaluación → preaprobación de un coordinador → aprobación final de otro coordinador. El evaluador solo revisa y califica." vertex="1">
+          <mxGeometry height="350" width="430" x="700" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="repos" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ede9fe;strokeColor=#8b5cf6;fontColor=#243247;fontSize=13;align=left;verticalAlign=middle;spacing=13;" value="&lt;b&gt;Acceso a datos&lt;/b&gt;&lt;br&gt;Repository pattern: repositorios para usuarios, solicitudes, convocatorias, documentos, comités y evaluaciones.&lt;br&gt;&lt;br&gt;Entity Framework Core 8 + BecaNetDbContext&lt;br&gt;Mapeo de entidades, relaciones, restricciones e índices; consultas LINQ y persistencia." vertex="1">
+          <mxGeometry height="130" width="430" x="700" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="datahead" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f766e;strokeColor=#0f766e;fontColor=#ffffff;fontSize=15;fontStyle=1;align=center;verticalAlign=middle;" value="3  |  PERSISTENCIA" vertex="1">
+          <mxGeometry height="46" width="350" x="1370" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="files" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ecfdf5;strokeColor=#34d399;fontColor=#243247;fontSize=13;align=left;verticalAlign=middle;spacing=13;" value="&lt;b&gt;Almacenamiento de documentos&lt;/b&gt;&lt;br&gt;Sistema de archivos local del backend:&lt;br&gt;BecaNet.Api/wwwroot/uploads&lt;br&gt;&lt;br&gt;La base conserva metadatos y la ruta/URL del documento; la API sirve los archivos estáticos." vertex="1">
+          <mxGeometry height="170" width="350" x="1200" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="dbinfo" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1fae5;strokeColor=#6ee7b7;fontColor=#1f453d;fontSize=12;align=left;verticalAlign=middle;spacing=12;" value="Persistencia relacional; solicitudes conectan estudiante, convocatoria, asignación, evaluación, documentos y decisiones." vertex="1">
+          <mxGeometry height="70" width="350" x="1390" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="securityhead" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#334155;strokeColor=#334155;fontColor=#ffffff;fontSize=15;fontStyle=1;align=center;verticalAlign=middle;" value="SEGURIDAD Y SERVICIOS TRANSVERSALES" vertex="1">
+          <mxGeometry height="46" width="300" x="2220" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="security" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;strokeColor=#94a3b8;fontColor=#243247;fontSize=13;align=left;verticalAlign=top;spacing=13;" value="&lt;b&gt;Autenticación y autorización&lt;/b&gt;&lt;br&gt;JWT firmado; el frontend persiste la sesión y envía Bearer en cada petición.&lt;br&gt;[Authorize] por rol en endpoints protegidos; authGuard también controla las rutas del cliente.&lt;br&gt;&lt;br&gt;&lt;b&gt;Protección de credenciales&lt;/b&gt;&lt;br&gt;Contraseñas con hash (PasswordHasher); no se incluyen en auditoría.&lt;br&gt;&lt;br&gt;&lt;b&gt;CORS&lt;/b&gt;&lt;br&gt;Permite el origen local Angular :4200." vertex="1">
+          <mxGeometry height="310" width="300" x="2220" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="audit" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#fdba74;fontColor=#243247;fontSize=13;align=left;verticalAlign=middle;spacing=13;" value="&lt;b&gt;Auditoría y avisos&lt;/b&gt;&lt;br&gt;Auditoría identifica actor, rol, operación, entidad, cambio y hora UTC; el acceso al API está restringido a coordinadores.&lt;br&gt;&lt;br&gt;Observadores de solicitud generan avisos al estudiante por cambios de estado." vertex="1">
+          <mxGeometry height="220" width="300" x="2220" y="645" as="geometry" />
+        </mxCell>
+        <mxCell id="runtime" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f5f9;strokeColor=#94a3b8;fontColor=#243247;fontSize=12;align=left;verticalAlign=middle;spacing=13;" value="&lt;b&gt;Ejecución local&lt;/b&gt;&lt;br&gt;Angular dev server: :4200&lt;br&gt;ASP.NET Core API: :5000&lt;br&gt;SQL Server configurado por connection string&lt;br&gt;Swagger para explorar endpoints" vertex="1">
+          <mxGeometry height="140" width="300" x="1860" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="flowhead" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#0f172a;fontColor=#ffffff;fontSize=15;fontStyle=1;align=left;verticalAlign=middle;spacingLeft=18;" value="FLUJO PRINCIPAL DE UNA SOLICITUD" vertex="1">
+          <mxGeometry height="44" width="1850" x="30" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="flow" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#cbd5e1;fontColor=#243247;fontSize=13;align=left;verticalAlign=middle;spacing=16;" value="1. Estudiante elige convocatoria, indica motivo y envía solicitud  →  2. Carga certificación/documentos  →  3. Coordinación distribuye entre evaluadores  →  4. Evaluador califica, escribe observaciones y marca «Revisado»  →  5. Coordinación decide según monto: ≤ Q10,000 una aprobación; &gt; Q10,000 preaprobación de un coordinador y aprobación final de otro  →  6. Estudiante consulta estado y notificaciones." vertex="1">
+          <mxGeometry height="76" width="1850" x="30" y="1024" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontColor=#FFFFFF;fontSize=12;" value="Leyenda: flechas sólidas = flujo principal entre capas; líneas punteadas = controles transversales de seguridad, auditoría y notificaciones. Diagrama basado en la implementación actual del proyecto." vertex="1">
+          <mxGeometry height="30" width="1800" x="35" y="1110" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="student" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#3b82f6;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="ui" value="interfaz por rol">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="coordinator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#7c3aed;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="ui" value="interfaz por rol">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="evaluator" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#16a34a;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="ui" value="interfaz por rol">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="ui" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#2563eb;fontColor=#1e3a5f;fontSize=11;labelBackgroundColor=#ffffff;" target="controllers" value="HTTPS/HTTP REST · JSON · Bearer JWT">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="controllers" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#7c3aed;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="services" value="delegación">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="services" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#7c3aed;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="repos" value="consultas y reglas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="repos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#0f766e;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="db" value="EF Core">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="services" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#0f766e;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="files" value="guardar/servir archivos">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="db" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;strokeWidth=2;strokeColor=#64748b;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="controllers" value="protege endpoints">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="audit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;strokeWidth=2;strokeColor=#f97316;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="db" value="auditoría y notificaciones">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="services" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;strokeWidth=2;strokeColor=#f97316;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="audit" value="módulos API">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="EMiF6qt2qrbRslcUl9xE-1" edge="1" parent="1" source="security" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;dashed=1;strokeWidth=2;strokeColor=#64748b;fontColor=#334155;fontSize=11;labelBackgroundColor=#ffffff;" target="db" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1975" y="320" />
+              <mxPoint x="1975" y="330" />
+            </Array>
+            <mxPoint x="1860" y="370" as="sourcePoint" />
+            <mxPoint x="1130" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="db" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ecfdf5;strokeColor=#34d399;fontColor=#243247;fontSize=13;align=left;verticalAlign=top;spacing=13;" value="&lt;b&gt;SQL Server · BecaNetDB&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Identidad (TPT)&lt;/b&gt;&lt;br&gt;Usuario → Estudiante / CoordinadorBecas / EvaluadorComite&lt;br&gt;&lt;br&gt;&lt;b&gt;Proceso de beca&lt;/b&gt;&lt;br&gt;Convocatorias → Solicitudes&lt;br&gt;Documentos · Comites · ComiteMiembros&lt;br&gt;Evaluaciones · AprobacionSolicitud&lt;br&gt;&lt;br&gt;&lt;b&gt;Trazabilidad&lt;/b&gt;&lt;br&gt;RegistroAuditoria · NotificacionSolicitud&lt;br&gt;&lt;br&gt;Claves foráneas, índices únicos y restricción del tipo de aprobación. El esquema se prepara con BecaNet_Nuevos_Requisitos.sql al iniciar la API." vertex="1">
+          <mxGeometry height="430" width="350" x="1380" y="215" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
